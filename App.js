@@ -1,11 +1,12 @@
 
 //Import Components
-import React, { useState } from 'react';
+import React, {useEffect, useState } from 'react';
 import { StyleSheet, Text, View, SafeAreaView, Image, TouchableOpacity } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as SplashScreen from 'expo-splash-screen';
+
 
 //splashscreen timer
 SplashScreen.preventAutoHideAsync();
@@ -13,9 +14,18 @@ setTimeout(SplashScreen.hideAsync, 5000);
 
 
 //Import pages
-import Startpage from './components/StartPage'
-import Login from './components/Login'
-import Register from './components/Register'
+import Startpage from './components/StartPage';
+import Login from './components/Login';
+import Register from './components/Register';
+import Homepage from './components/Homepage';
+import Profilepage from './components/Profile';
+
+
+
+
+//firebase
+import { onAuthStateChanged } from 'firebase/auth';
+import { auth } from './firebase';
 
 const Stack = createNativeStackNavigator();
 
@@ -26,6 +36,28 @@ const Stack = createNativeStackNavigator();
 
 //Content
 export default function App() {
+
+  const [ loggedIn, setLoggedIn] = useState(false);
+
+
+  useEffect(() => {
+
+    //Listening to if our current User is logged in
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if(user){
+        //user is logged in
+
+        setLoggedIn(true);
+      }else{
+        //user is logged out
+        setLoggedIn(false);
+      }
+    })
+    return unsubscribe;
+
+  }, []);
+
+console.log(loggedIn)
 
 
   
@@ -60,8 +92,19 @@ isAppFirstLaunched !=null && (// if opened for first time render startpage else 
           <Stack.Screen  name="Startpage" component={Startpage} />
         )}
 
+{loggedIn ? (
+        <>
+        <Stack.Screen name="Homepage" component={Homepage} />
+        <Stack.Screen name="Profile" component={Profilepage} />
+        </>
+      ):(
+        <>
         <Stack.Screen name="Login" component={Login} />
         <Stack.Screen name="Register" component={Register} />
+     
+        </>
+        )}
+
       </Stack.Navigator>
       
     </NavigationContainer>
@@ -80,3 +123,6 @@ const styles = StyleSheet.create({
 
 //glassmorphism
 //TODO: https://docs.expo.dev/versions/latest/sdk/linear-gradient/
+
+//bottom drawer
+//https://www.youtube.com/watch?v=KvRqsRwpwhY

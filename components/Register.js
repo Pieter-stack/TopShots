@@ -6,7 +6,6 @@ import { BlurView } from 'expo-blur';
 
 //firebase
 import { createUserWithEmailAndPassword } from 'firebase/auth';
-
 import {auth} from '../firebase';
 
 //Import fonts
@@ -88,21 +87,22 @@ export default function Register({navigation}) {
 //onPress Register a user
 const handleRegisterPress = () =>{
 
-  
-  createUserWithEmailAndPassword(auth, email, password)
-  .then((userCredentials) => {
-           //executes when creation
-           const user = userCredentials.user;
-           Alert.alert(user.uid);
-           
-
-
-           //TODO: add user to db
-  })
-  .catch((error) =>{
-      //executes when failure
-       Alert.alert(error.messsage);
-  })
+        //create user function  (auth instance, email, password)
+        createUserWithEmailAndPassword(auth, email, password)
+        .then((userCredentials) => {
+                 //executes when creation
+                 const user = userCredentials.user;
+                 Alert.alert("User" + user.uid);
+                 navigation.replace('Login');
+ 
+ 
+                 //TODO: add user to db
+        })
+        .catch((error) =>{
+            //executes when failure
+             Alert.alert(error.messsage);
+        
+        })
 
 
 }
@@ -187,8 +187,8 @@ const Slide = ({item}) => {
     <>
       <BlurView
         style={{marginBottom:10}}
-        blurType="default"
-        blurAmount={10}
+        tint="light"
+        intensity={30}
         reducedTransparencyFallbackColor="white"
       >
         <Text style={styles.label}>Name</Text>
@@ -237,8 +237,8 @@ const Slide = ({item}) => {
     <>
       <BlurView
         style={{marginBottom:10}}
-        blurType="default"
-        blurAmount={10}
+        tint="light"
+        intensity={30}
         reducedTransparencyFallbackColor="white"
       >
         <Text style={styles.label}>Age</Text>
@@ -299,8 +299,8 @@ const Slide = ({item}) => {
     <>
       <BlurView
         style={{marginBottom:10}}
-        blurType="default"
-        blurAmount={10}
+        tint="light"
+        intensity={30}
         reducedTransparencyFallbackColor="white"
       >
         <Text style={styles.label}>Email</Text>

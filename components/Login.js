@@ -4,6 +4,10 @@ import {Platform, StatusBar,StyleSheet, Text, View, SafeAreaView, Image, Touchab
 import { Dimensions } from "react-native";
 import { BlurView } from 'expo-blur';
 
+//firebase
+import { signInWithEmailAndPassword } from 'firebase/auth';
+import {auth} from '../firebase';
+
 //Import fonts
 import * as Font from 'expo-font';
 
@@ -32,11 +36,24 @@ export default function Login({navigation}) {
   const [email, onEmailChange]=useState("");
   const [password, onPasswordChange]=useState("");
 
-  //onPress?????????????????????????????????????????
+  //onPress Login
   const handleLoginPress = () =>{
 
   
-    Alert.alert(" EMAIL: "+ email + " PASSWORD: "+ password);
+    signInWithEmailAndPassword(auth, email, password)
+    .then((userCredentials) =>{
+        const user = userCredentials.user;
+        Alert.alert(user.uid);
+
+        navigation.replace('Homepage');
+
+
+
+    })
+    .catch((error) =>{
+        Alert.alert(error.message);
+    })
+
   
   }
 
@@ -55,8 +72,8 @@ export default function Login({navigation}) {
     <>
       <BlurView
         style={{marginBottom:10}}
-        blurType="default"
-        blurAmount={10}
+        tint="light"
+        intensity={30}
         reducedTransparencyFallbackColor="white"
       >
         <Text style={styles.label}>Username</Text>
