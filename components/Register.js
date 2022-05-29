@@ -112,7 +112,7 @@ const Slide = ({item}) => {
   return(
       <View style={{alignItems:'center'}}>
         <View style={{width}}>
-          <Image source={item.image} style={{width: imagewidth,height: imageHeight, resizeMode:'contain', alignSelf:'center'}}/>
+          <Image source={item.image} style={{width:imagewidth*0.95,height: imageHeight*0.95, resizeMode:'contain', alignSelf:'center', marginTop:-10}}/>
         </View>
           <Text style={styles.heading}>{item.title}</Text>
      </View>
@@ -122,7 +122,7 @@ const Slide = ({item}) => {
   //footer render
   const Footer = () => {
     return(
-      <View style={{height:Platform.OS === 'ios' ? height*0.15 : height*0.17 , width, paddingHorizontal:20, position:'absolute', marginTop:Platform.OS === 'ios' ? height*0.803 : height*0.84}}>
+      <View style={{height:Platform.OS === 'ios' ? height*0.15 : height*0.17 , width, paddingHorizontal:20, position:'absolute', bottom:25}}>
         <View style={{flexDirection:'row', justifyContent:'center', marginTop:20}}>
          {slides.map((_,index)=>  (
           <View key={index} style={[styles.indicator,currentSlideIndex == index &&{
@@ -384,7 +384,7 @@ const Slide = ({item}) => {
       borderWidth:3,
       marginTop:height/120,
       width: width/1.2,
-      height:60,
+      minHeight:height*0.070,
       alignSelf:'center',
       borderRadius:7,
       fontFamily:'Roboto',

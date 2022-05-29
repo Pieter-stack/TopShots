@@ -71,12 +71,12 @@ export default function Login({navigation}) {
 {Platform.OS === 'ios' ?(
     <>
       <BlurView
-        style={{marginBottom:10}}
+        style={{marginBottom:-15}}
         tint="light"
         intensity={30}
         reducedTransparencyFallbackColor="white"
       >
-        <Text style={styles.label}>Username</Text>
+        <Text style={styles.label}>Email</Text>
           <TextInput  
             value={email}
             onChangeText={onEmailChange}
@@ -99,8 +99,8 @@ export default function Login({navigation}) {
     <>
       <View
         style={{marginBottom:10, backgroundColor:'white',opacity:0.95, height:height*0.26}}
-        blurType="default"
-        blurAmount={100}
+        blurType="light"
+        blurAmount={30}
       >
         <Text style={styles.label}>Username</Text>
           <TextInput  
@@ -124,7 +124,7 @@ export default function Login({navigation}) {
   )
 }
       </KeyboardAvoidingView>
-          <View style={{marginTop:Platform.OS === 'ios' ? height*0.27 : height*0.34}}>
+          <View style={{position:'absolute' , bottom:30}}>
             <TouchableOpacity onPress={handleLoginPress}>
               <View style={styles.loginbtn}>
               <Text style={styles.loginbtnText}>Login</Text>
@@ -155,7 +155,7 @@ export default function Login({navigation}) {
     },
     loginimg:{
         alignSelf: 'center',
-        marginTop:height*0.05,
+        marginTop:height*0.02,
        width: imagewidth,
        height: imageHeight   
     },
@@ -173,7 +173,7 @@ export default function Login({navigation}) {
         borderWidth:3,
         marginTop:height*0.005,
         width: width*0.83,
-        height:60,
+        minHeight:height*0.075,
         alignSelf:'center',
         borderRadius:7,
         fontFamily:'Roboto',
