@@ -66,7 +66,7 @@ export default function Login({navigation}) {
           <Text style={styles.heading}>Welcome Back</Text>
         <KeyboardAvoidingView style={{ position:'absolute',
           bottom:height*0.21,width:'100%',flexDirection:'row',justifyContent:'space-around'
-          }} behavior={Platform.OS === 'ios' ? 'padding' : "height"}>
+          }} behavior={Platform.OS === 'ios' ? 'position' : "padding"} keyboardVerticalOffset={Platform.OS === 'ios' ? 30 : 0}>
 
 {Platform.OS === 'ios' ?(
     <>
@@ -102,7 +102,7 @@ export default function Login({navigation}) {
         blurType="light"
         blurAmount={30}
       >
-        <Text style={styles.label}>Username</Text>
+        <Text style={styles.label}>Email</Text>
           <TextInput  
             value={email}
             onChangeText={onEmailChange}
@@ -124,7 +124,7 @@ export default function Login({navigation}) {
   )
 }
       </KeyboardAvoidingView>
-          <View style={{position:'absolute' , bottom:30}}>
+          <View style={{position:'absolute' , bottom:40}}>
             <TouchableOpacity onPress={handleLoginPress}>
               <View style={styles.loginbtn}>
               <Text style={styles.loginbtnText}>Login</Text>

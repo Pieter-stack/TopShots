@@ -2,6 +2,7 @@
 //Import Components
 import React, {useEffect, useState } from 'react';
 import { StyleSheet, Text, View, SafeAreaView, Image, TouchableOpacity } from 'react-native';
+import AppLoading from 'expo-app-loading';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -19,7 +20,10 @@ import Login from './components/Login';
 import Register from './components/Register';
 import Homepage from './components/Homepage';
 import Profilepage from './components/Profile';
-
+import Competitionreg from './components/Competitionreg';
+import Competitionenter from './components/CompetitionEnter';
+import Leaderboard from './components/Leaderboard';
+import Golfcourse from './components/Golfcourse';
 
 
 
@@ -33,9 +37,14 @@ const Stack = createNativeStackNavigator();
 
 
 
-
 //Content
 export default function App() {
+
+
+
+
+
+  
 
   const [ loggedIn, setLoggedIn] = useState(false);
 
@@ -82,23 +91,43 @@ console.log(loggedIn)
   fetchData()
   }, []); 
 
+  const [IsReady, setIsReady] = useState(false);
+
+  const LoadFonts = async () => {
+    await useFonts();
+  };
+  
+  if (!IsReady) {
+    return (
+      <AppLoading
+        startAsync={LoadFonts}
+        onFinish={() => setIsReady(true)}
+        onError={() => {}}
+      />
+    );
+  }
+
 //content Render
   return (
 isAppFirstLaunched !=null && (// if opened for first time render startpage else skip start page
 
     <NavigationContainer>
       <Stack.Navigator screenOptions={{headerShown: false}} >
-        {isAppFirstLaunched && (   
-          <Stack.Screen  name="Startpage" component={Startpage} />
-        )}
-
 {loggedIn ? (
         <>
+        
         <Stack.Screen name="Homepage" component={Homepage} />
         <Stack.Screen name="Profile" component={Profilepage} />
+        <Stack.Screen name="CompReg" component={Competitionreg}/>
+        <Stack.Screen name="CompEnter" component={Competitionenter}/>
+        <Stack.Screen name="Leaderboard" component={Leaderboard}/>
+        <Stack.Screen name="Golfcourse" component={Golfcourse}/>
         </>
       ):(
         <>
+        {isAppFirstLaunched && (
+         <Stack.Screen  name="Startpage" component={Startpage} />
+        )}
         <Stack.Screen name="Login" component={Login} />
         <Stack.Screen name="Register" component={Register} />
      
@@ -126,3 +155,7 @@ const styles = StyleSheet.create({
 
 //bottom drawer
 //https://www.youtube.com/watch?v=KvRqsRwpwhY
+
+
+//active classes
+//https://stackoverflow.com/questions/41224418/react-native-add-active-class-when-push-the-button

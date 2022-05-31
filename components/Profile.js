@@ -1,5 +1,5 @@
 //Import Components
-import react from 'react';
+import react, {useState, useEffect} from 'react';
 import { StatusBar,StyleSheet, Text, View, SafeAreaView, Image, TouchableOpacity,ScrollView } from 'react-native';
 import { Dimensions } from "react-native";
 import { BlurView } from 'expo-blur';
@@ -10,6 +10,9 @@ import * as Font from 'expo-font';
 //firebase
 import { signOut } from 'firebase/auth';
 import { auth } from '../firebase';
+import { getUser } from '../Database';
+
+
 
 //Import images
 import test from '../assets/images/test.png';
@@ -17,7 +20,8 @@ import arrow from '../assets/images/backarrow.png';
 import logout from '../assets/images/logout.png';
 import flag from '../assets/images/flag.png';
 import testpfp from '../assets/images/testpfp.png';
-import testbadge from '../assets/images/testbadge.png';
+import badge from '../assets/images/badge.png';
+
 
 
 
@@ -45,6 +49,20 @@ export default function Profile({navigation}) {
       }
 
 
+      const [users, setUsers]= useState([]);
+
+      useEffect(() => {
+        fetchUser();
+        }, [])
+        
+        const fetchUser = async () => {
+          const data = await getUser();
+          setUsers(data);
+          console.log(data);
+
+
+
+        }
 
 
 
@@ -63,30 +81,43 @@ export default function Profile({navigation}) {
         <Image source={testpfp} style={styles.pfp}/>
         <View style={{flexDirection:'row',position:'absolute', bottom:height*0.03, alignSelf:'flex-end'}}>
         <BlurView
-            style={{width:width*0.10,height:height*0.08, zIndex:2, borderRadius:width*0.015, overflow:'hidden', marginRight:10}}
+            style={{width:width*0.12,height:height*0.08, zIndex:2, borderRadius:width*0.015, overflow:'hidden', marginRight:10}}
             tint="light"
             intensity={70}
             reducedTransparencyFallbackColor="white"
-        ></BlurView>
+        >
+            <Image source={badge} style={{ alignSelf:'center' ,width:'90%', height:'60%', marginTop:5}}/>
+            <Text style={{color:'white', fontSize:8, textAlign:'center', marginTop:'15%'}}>Rank {users.rank}</Text>
+        </BlurView>
         <BlurView
-            style={{width:width*0.10,height:height*0.08, zIndex:2, borderRadius:width*0.015, overflow:'hidden', marginRight:10}}
+            style={{width:width*0.12,height:height*0.08, zIndex:2, borderRadius:width*0.015, overflow:'hidden', marginRight:10}}
             tint="light"
             intensity={70}
             reducedTransparencyFallbackColor="white"
-        ></BlurView>
+        >
+            <Text style={{color:'white', fontSize:32, textAlign:'center', marginTop:'15%'}}>{users.handicap}</Text>
+            <Text style={{color:'white', fontSize:8, textAlign:'center', marginTop:'20%'}}>Handicap</Text>
+        </BlurView>
         </View>
         </View>
-        <Text style={{ fontSize:32, fontWeight:'bold', alignSelf:'center', marginTop:10}}>Tiger Woods</Text>
+        <Text style={{ fontSize:32, fontWeight:'bold', alignSelf:'center', marginTop:10}} >{users.name} {users.surname}</Text>
+
+
+
+
+
+
+
         <View style={{width:width*0.95, height:5, backgroundColor:'#68BF7B', alignSelf:'center', borderRadius:100, marginTop:10}}></View>
         <View>
         <Text style={{ fontSize:22, fontFamily:'Roboto', marginTop:10,marginLeft:10}}>Badges</Text>
         <View style={{width:width*0.95, height:100, marginTop:10, marginLeft:width*0.025}}>
         <ScrollView horizontal={true} showsHorizontalScrollIndicator={false} style={{width:'100%', height:'100%'}}>
-        <Image source={testbadge} style={styles.badge}/>
-        <Image source={testbadge}  style={styles.badge}/>
-        <Image source={testbadge}  style={styles.badge}/>
-        <Image source={testbadge}  style={styles.badge}/>
-        <Image source={testbadge}  style={styles.badge}/>
+        <Image source={badge} style={styles.badge}/>
+        <Image source={badge}  style={styles.badge}/>
+        <Image source={badge}  style={styles.badge}/>
+        <Image source={badge}  style={styles.badge}/>
+        <Image source={badge}  style={styles.badge}/>
         </ScrollView>
         </View>
         </View>

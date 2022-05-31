@@ -1,0 +1,195 @@
+//Import Components
+import react, {useState, useEffect} from 'react';
+import { StatusBar,StyleSheet, Text, View, SafeAreaView, Image, TouchableOpacity,ScrollView,TextInput,Button } from 'react-native';
+import { Dimensions } from "react-native";
+import { BlurView } from 'expo-blur';
+
+
+
+
+//Import fonts
+import * as Font from 'expo-font';
+
+//firebase
+import { signOut } from 'firebase/auth';
+import { auth } from '../firebase';
+
+
+//Import images
+
+import arrow from '../assets/images/backarrow.png';
+import test from '../assets/images/test.png';
+import flag from '../assets/images/flag.png';
+
+    //convert seconds to date
+    const convertToDate = (seconds) => {
+        
+        return new Date(seconds*1000).toLocaleString();
+        
+    }
+
+
+
+//Get width and height of device for responsiveness
+var width = Dimensions.get('window').width;
+var height = Dimensions.get('window').height;
+
+    //get fonts
+    Font.loadAsync({
+      'Allan' :require('../assets/fonts/Allan-Bold.ttf'),
+      'Roboto': require('../assets/fonts/Roboto-Regular.ttf')
+    });
+
+//Content
+export default function Competitionenter({route, navigation}) {
+
+    const currentcomp = route.params;
+
+     
+
+  //Content Render
+  return (
+    <View style={styles.container}>
+        <StatusBar barStyle = "dark-content" hidden = {false} translucent = {true}/>
+        <Image source={test} style={{width, height, alignSelf:'center', position:'absolute', zIndex:-1}}/>
+        <View style={{backgroundColor:'rgba(0, 0, 0, 0.3)', width, height, alignSelf:'center', position:'absolute', zIndex:2}}>
+
+        <TouchableOpacity style={styles.back} onPress={() => navigation.pop()}>
+        <Image source={arrow} style={{marginTop:11, alignSelf:'center'}} />
+        </TouchableOpacity>
+        <Text style={styles.titles}>{currentcomp.title}</Text>
+        <Text style={styles.descrip}>{currentcomp.description}</Text>
+        <BlurView
+          style={{width:'100%',height:'50%', position:'absolute', zIndex:3, borderRadius:15, overflow:'hidden', bottom:0}}
+          tint="light"
+          intensity={50}
+          reducedTransparencyFallbackColor="white"
+        >
+        <View style={{flexDirection:'row', flexShrink:1, marginTop:30}}>
+
+            <Text style={styles.label}>Date:</Text>
+            <Text style={styles.labeltext}>{convertToDate(currentcomp.date.seconds)}</Text>
+        </View>
+        <View style={{flexDirection:'row', flexShrink:1, marginTop:15}}>
+
+            <Text style={styles.label}>Venue:</Text>
+            <Text style={styles.labeltext}>{currentcomp.venue}</Text>
+        </View>
+        <View style={{flexDirection:'row', flexShrink:1, marginTop:15}}>
+
+            <Text style={styles.label}>Gender:</Text>
+            <Text style={styles.labeltext}>{currentcomp.gender}</Text>
+        </View>
+
+        <View style={{flexDirection:'row', flexShrink:1, marginTop:15}}>
+
+            <Text style={styles.label}>Age:</Text>
+            <Text style={styles.labeltext}>{currentcomp.age}</Text>
+        </View>
+        <View style={{flexDirection:'row', flexShrink:1, marginTop:15}}>
+
+        <Image source={flag} style={{marginLeft:width*0.08,marginTop:-3}}></Image>
+            <Text style={{color:'#fff',fontSize:16,fontFamily:'Roboto',marginLeft:width*0.01}}>{currentcomp.hole}</Text>
+        </View>
+        <View style={{flexDirection:'row', flexShrink:1, marginTop:-20}}>
+            <Text style={styles.max1}>44</Text>
+            <Text style={styles.max2}>/</Text>
+            <Text style={styles.max3}>{currentcomp.maxplayers}</Text>
+        </View>
+        
+
+        <View style={{position:'absolute' , bottom:40, alignSelf:'center'}}>
+        <TouchableOpacity onPress={()=> navigation.navigate("Leaderboard" , currentcomp)}>
+              <View style={styles.btn}>
+              <Text style={styles.btnText}>Enter Tournament</Text>
+          </View>
+            </TouchableOpacity>
+            </View>
+        
+        </BlurView>
+     
+
+        
+
+        
+        </View>
+    </View>
+  );
+}
+
+//Styling
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#fff',
+  },
+  back:{
+    position:'absolute',
+    width:50,
+    height:50,
+    marginLeft:5,
+    marginTop:height*0.075
+},
+titles:{
+    fontFamily:'Allan',
+    color:'#fff',
+    fontSize:30,
+    marginTop:height*0.15,
+    marginLeft:width*0.15
+
+},
+descrip:{
+    color:'#fff',
+    fontFamily:'Roboto',
+    marginLeft:width*0.15
+},
+btn:{
+    backgroundColor: '#064635',
+    width: width*0.84,
+    height:60,
+    alignSelf:'center',
+    borderRadius:7 
+  },
+  btnText:{
+    textAlign:'center',
+    paddingTop:13,
+    color:'white',
+    fontSize:26,
+    fontFamily:'Allan' 
+  },
+  label:{
+    color:'#fff',
+    fontSize:16,
+    fontWeight:'bold',
+    marginLeft:width*0.10,
+    width:70
+  }
+  ,
+  labeltext:{
+    color:'#fff',
+    fontSize:16,
+    fontFamily:'Roboto',
+    marginLeft:width*0.05
+  },
+  max1:{
+    color:'#fff',
+    fontSize:20,
+    marginLeft:width*0.70,
+ 
+  },
+  max2:{
+    color:'#fff',
+    fontSize:20,
+    marginLeft:width*0.01,
+    marginTop:3
+ 
+  },
+  max3:{
+    color:'#fff',
+    fontSize:20,
+    fontWeight:'bold',
+    marginLeft:width*0.01,
+    marginTop:6
+  }
+  
+});

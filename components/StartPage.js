@@ -24,17 +24,17 @@ export default function StartPage({navigation}) {
 
   //Content Render
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
         <StatusBar barStyle = "dark-content" hidden = {false} translucent = {true}/>
           <Text style={styles.heading}>Welcome to top Shots</Text>
           <Image source={landing} style={styles.landingimg}></Image>
           <Text style={styles.body}>the number one golf competition app</Text>
-            <TouchableOpacity onPress={() => navigation.replace('Login')}>
+            <TouchableOpacity style={{position:'absolute', bottom:20}} onPress={() => navigation.replace('Login')}>
               <View style={styles.startbtn}>
             <Text style={styles.startbtnText}>Get Started</Text>
               </View>
             </TouchableOpacity>
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -48,7 +48,7 @@ const styles = StyleSheet.create({
   },
   heading:{
     textAlign:'center',
-    marginTop:height*20,
+    marginTop:height*0.06,
     fontSize:36,
     fontFamily:'Allan',
     marginLeft:width/4,
@@ -86,3 +86,10 @@ const styles = StyleSheet.create({
     fontFamily:'Allan'
   }
 });
+
+
+
+
+
+
+

@@ -1,8 +1,10 @@
 //Import Components
-import react from 'react';
-import { StatusBar,StyleSheet, Text, View, SafeAreaView, Image, TouchableOpacity,ScrollView } from 'react-native';
+import react, {useState, useEffect} from 'react';
+import { StatusBar,StyleSheet, Text, View, SafeAreaView, Image, TouchableOpacity,ScrollView,TouchableHighlight,AsyncStorage } from 'react-native';
 import { Dimensions } from "react-native";
 import { BlurView } from 'expo-blur';
+
+
 
 //Import fonts
 import * as Font from 'expo-font';
@@ -17,6 +19,7 @@ import rectangle from '../assets/images/rectangle.png';
 import test from '../assets/images/test.png';
 import testpfp from '../assets/images/testpfp.png';
 import flag from '../assets/images/flag.png';
+import { getAllComps } from '../Database';
 
 //Get width and height of device for responsiveness
 var width = Dimensions.get('window').width;
@@ -28,12 +31,82 @@ var height = Dimensions.get('window').height;
       'Roboto': require('../assets/fonts/Roboto-Regular.ttf')
     });
 
+
+
+
 //Content
 export default function Homepage({navigation}) {
+
+
+    //set comps
+    const [comps, setComps]= useState([]);
+
+    //active class
+    const [active, setActive] = useState('');
+
+    
+    const [isPress, setIsPress] = useState(false);
+    const [isPress2, setIsPress2] = useState(false);
+
+
+
+    const touchProps = {
+        
+        underlayColor: 'white',
+        style: isPress ? {opacity:1} : {opacity:0.5},
+        onHideUnderlay: () => setIsPress(true),
+        onShowUnderlay: () => setIsPress2(false),
+       
+        
+       
+        
+       
+        
+      };
+
+      const touchProps2 = {
+        
+        underlayColor: 'white',
+        style: isPress2 ? {opacity:1} : {opacity:0.5},
+        onHideUnderlay: () => setIsPress2(true),
+        onShowUnderlay: () => setIsPress(false),  
+       
+      };
+
+
+
+
+useEffect(() => {
+    fetchAllComps();
+    }, [])
+    
+    const fetchAllComps = async () => {
+      const data = await getAllComps();
+      setComps(data);
+      
+      
+    }
+    
+    //convert seconds to date
+    const convertToDate = (seconds) => {
+        
+        return new Date(seconds*1000).toLocaleString();
+        
+    }
+
+    
+
 
   //Content Render
   return (
     <SafeAreaView style={styles.container}>
+
+
+
+
+
+
+
         <StatusBar barStyle = "dark-content" hidden = {false} translucent = {true}/>
         <View style={{flexDirection:'row', justifyContent:'space-between'}}>
             <Image source={logo} style={styles.logoimg}></Image>
@@ -44,9 +117,21 @@ export default function Homepage({navigation}) {
             <View style={{flexDirection:'row', justifyContent:'space-between'}}>
                 <Text style={styles.heading}>Tournaments</Text>
                 <View style={{flexDirection:'row', justifyContent:'space-between'}}>
+
+
+<TouchableHighlight {...touchProps} onPress={() => setActive('1')}>
                 <Image source={rectangle} style={styles.icon1}></Image>
+</TouchableHighlight>
+
+
                 <Image source={line} style={styles.icon2}></Image>
-                <Image source={square} style={styles.icon3}></Image>
+
+
+<TouchableHighlight {...touchProps2} onPress={() => setActive('2')}>
+                <Image source={square} style={styles.icon1}></Image>
+</TouchableHighlight>
+
+
                 </View>
             </View>
             <View style={{flexDirection:'row', justifyContent:'space-between'}}>
@@ -62,17 +147,28 @@ export default function Homepage({navigation}) {
                     </View>
                 </ScrollView>     
             </View>
-                <View style={{width:width, height:height*0.48, marginTop:10}}>
+                <View style={{width:width, height:height*0.45, marginTop:10}}>
                     <ScrollView  contentContainerStyle={styles.scroll}>
-                        <View style={styles.rowAlign}>
+
+
+
+
+{active == '1'? (
+
+<>
+
+                    {comps.map((comp, index) => (
+     <TouchableOpacity key={index} onPress={()=> navigation.navigate("CompEnter" , comp)} >
+
+<View style={styles.rowAlign}>
                             <Image  resizeMode={"cover"} source={test} style={styles.divImg}/>
                         <View style={styles.opacitydiv}>
                             <View style={{flexDirection:'row'}}>
-                                    <Text style={styles.divheading}>PGA Mens Tournament</Text>
+                                    <Text style={styles.divheading}>{comp.title}</Text>
                                 <View style={{flexDirection:'row'}}>
                                     <Text style={styles.curentuser}>44</Text>
                                     <Text style={styles.dash}>/</Text>
-                                    <Text style={styles.maxuser}>50</Text>
+                                    <Text style={styles.maxuser}>{comp.maxplayers}</Text>
                                 </View>
                             </View>
                             <BlurView
@@ -82,29 +178,43 @@ export default function Homepage({navigation}) {
                                     reducedTransparencyFallbackColor="white"
                             >
                                 <View style={{flexDirection:'row', flexShrink:1}}>
-                                    <Text style={styles.datecon}>12 February 2022</Text>
-                                    <Text style={styles.dashcon}>|</Text>
-                                    <Text style={styles.opencon}>closed</Text>
+                                    <Text style={styles.datecon}>{convertToDate(comp.date.seconds)}</Text>
+                                    
+                                    
+                   
                                 </View>
+                                
                                 <View style={{flexDirection:'row', flexWrap:'wrap'}}>
                                 <Image source={flag} style={styles.flagicon}></Image>
-                                    <Text style={styles.amountholes}>18</Text>
+                                    <Text style={styles.amountholes}>{comp.hole}</Text>
                                     <Text style={styles.dashcon2}>|</Text>
-                                    <Text style={styles.golfcoursecon}>Sun City Golf Course</Text>
+                                    <Text style={styles.golfcoursecon}>{comp.venue}</Text>
                                 </View>
                             </BlurView>
                         </View>  
                 </View>
-                    <View style={styles.rowAlign}></View>
+
+
+</TouchableOpacity>
+))}
+</>
+
+):(
+
+<>
+
+{comps.map((comp, index) => (
+     <TouchableOpacity key={index}  onPress={()=> navigation.navigate("CompEnter" , comp)} >
+
                         <View style={styles.columnAlign}>
                             <Image  resizeMode={"cover"} source={test} style={styles.divImg}/>
                             <View style={styles.opacitydiv}>
                                 <View style={{flexDirection:'row'}}>
-                                        <Text style={styles.divheadinglong}>PGA Mens Tournament</Text>
+                                        <Text style={styles.divheadinglong}>{comp.title}</Text>
                                     <View style={{flexDirection:'row'}}>
                                         <Text style={styles.curentuser}>44</Text>
                                         <Text style={styles.dash}>/</Text>
-                                        <Text style={styles.maxuser}>50</Text>
+                                        <Text style={styles.maxuser}>{comp.maxplayers}</Text>
                                     </View>
                                 </View>
                                 <BlurView
@@ -114,26 +224,29 @@ export default function Homepage({navigation}) {
                                     reducedTransparencyFallbackColor="white"
                             >
                                 <View style={{flexDirection:'row'}}>
-                                    <Text style={styles.datecon}>12 March 2022</Text>
-                                    <Text style={styles.dashcon}>|</Text>
-                                    <Text style={styles.opencon}>Open</Text>
+                                    <Text style={styles.dateconcolumn}>{convertToDate(comp.date.seconds)}</Text>
                                 </View>
                                 <View style={{flexDirection:'row', flexWrap:'wrap'}}>
                                 <Image source={flag} style={styles.flagicon}></Image>
-                                    <Text style={styles.amountholes}>18</Text>
+                                    <Text style={styles.amountholes}>{comp.hole}</Text>
                                     <Text style={styles.dashcon2}>|</Text>
-                                    <Text style={styles.golfcoursecon}>Sun City Golf Course</Text>
+                                    <Text style={styles.golfcoursecon}>{comp.venue}</Text>
                                 </View>
                             </BlurView>
                             </View>
                             </View>
-                        <View style={styles.columnAlign}></View>
+                     
+                            </TouchableOpacity>
+))}
+</>
+)}
                 </ScrollView> 
             </View>
+            <TouchableOpacity onPress={() => navigation.push('CompReg')} style={{position:'absolute', bottom:20, marginLeft:width*0.49, zIndex:10}}>
             <View style={styles.addbtn}>
-                <Text style={{color:'#fff',alignSelf:'center', fontSize:60, fontWeight:'bold', marginTop:Platform.OS === 'ios' ? 0 : -4}}>+</Text>
+                <Text style={{color:'#fff', fontSize:width*0.12, fontWeight:'bold', textAlign:'center', marginTop:Platform.OS === 'ios' ? -2 : -4 }}>+</Text>
             </View>
-            
+            </TouchableOpacity>
 
     </SafeAreaView>
   );
@@ -169,17 +282,12 @@ icon1:{
     marginTop:45,
     marginRight:15,
     width:18,
-    height:18
+    height:18,
+    
 },
 icon2:{
     marginTop:42,
     marginRight:15   
-},
-icon3:{
-    marginTop:45,
-    marginRight:25,
-    width:22,
-    height:18   
 },
 btnfilter:{
     width:width*0.40,
@@ -208,6 +316,7 @@ scroll:{
     alignContent:'auto',
     flexDirection:'row',
     flexWrap:'wrap'
+
 },
 rowAlign:{
     flexDirection:'row', 
@@ -276,10 +385,18 @@ maxuser:{
     marginTop: 30
 },
 datecon:{
-   marginTop:10,
+   marginTop:2,
    marginLeft:10,
-   color:'#F3EDA8' 
+   color:'#F3EDA8',
+   letterSpacing: 0.4,
+   lineHeight:17
 },
+dateconcolumn:{
+    marginTop:10,
+    marginLeft:10,
+    color:'#F3EDA8',
+    letterSpacing: 0.4 
+ },
 dashcon:{
     marginTop:10,
     marginLeft:2 ,
@@ -312,13 +429,13 @@ golfcoursecon:{
     width:'70%'
 },
 addbtn:{
-width:80,
-height:80,
+width:width*0.15,
+height:width*0.15,
 backgroundColor:'#68BF7B',
-borderRadius:100,
+borderRadius:15,
 alignSelf:'center',
 position:'absolute',
-bottom:45
+bottom:20
 }
 
 

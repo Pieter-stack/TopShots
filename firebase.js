@@ -2,6 +2,8 @@
 import { initializeApp } from "firebase/app";
 //import authentication
 import {getAuth} from "firebase/auth"
+//import firestore
+import {getFirestore} from 'firebase/firestore';
 
 // https://firebase.google.com/docs/web/setup#available-libraries
 
@@ -21,3 +23,5 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 //create initial instance of auth functionality
 export const auth = getAuth(app);
+//Initialize Cloud firestore and set reference to the service
+export const db = getFirestore(app);

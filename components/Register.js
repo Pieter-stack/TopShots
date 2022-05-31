@@ -3,7 +3,7 @@ import React, { useState,useMemo } from 'react';
 import { StatusBar,StyleSheet, Text, View, SafeAreaView, Image, TouchableOpacity, TextInput,FlatList,Footer,Alert, KeyboardAvoidingView } from 'react-native';
 import { Dimensions } from "react-native";
 import { BlurView } from 'expo-blur';
-
+import { createUserOnRegister } from '../Database';
 //firebase
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import {auth} from '../firebase';
@@ -13,6 +13,7 @@ import * as Font from 'expo-font';
 
 //Import Images
 import logo from '../assets/images/logo.png';
+
 
 //Get width and height of device for responsiveness
 var width = Dimensions.get('window').width;
@@ -73,7 +74,7 @@ export default function Register({navigation}) {
   };
 
 //setStates
-  const [name, onNameChange] = useState('');
+  const [Name, onNameChange] = useState('');
   const [surname, onSurnameChange] = useState('');
   const [age, onAgeChange] = useState('');
   const [gender, onGenderChange] = useState('');
@@ -92,9 +93,11 @@ const handleRegisterPress = () =>{
         .then((userCredentials) => {
                  //executes when creation
                  const user = userCredentials.user;
-                 Alert.alert("User" + user.uid);
-                 navigation.replace('Login');
- 
+
+                 
+                
+                
+                createUserOnRegister(user,Name, surname, handicap, username, age, gender)
  
                  //TODO: add user to db
         })
@@ -181,7 +184,7 @@ const Slide = ({item}) => {
       <>         
         <KeyboardAvoidingView style={{ position:'absolute',
           bottom:height*0.21,width:'100%',flexDirection:'row',justifyContent:'space-around', height:Platform.OS === 'ios' ? height*0.30 : height*0.38
-          }} behavior={Platform.OS === 'ios' ? 'position' : "height"}>
+          }} behavior={Platform.OS === 'ios' ? 'position' : "position"} keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : -100}>
 
 {Platform.OS === 'ios' ?(
     <>
@@ -193,7 +196,7 @@ const Slide = ({item}) => {
       >
         <Text style={styles.label}>Name</Text>
           <TextInput  
-            value={name}
+            value={Name}
             onChangeText={onNameChange}
             style={styles.input}
           />
@@ -211,7 +214,7 @@ const Slide = ({item}) => {
         style={{marginBottom:10, backgroundColor:'white',opacity:0.95, height:height*0.35}}>
         <Text style={styles.label}>Name</Text>
           <TextInput  
-            value={name}
+            value={Name}
             onChangeText={onNameChange}
             style={styles.input}
           />
@@ -231,7 +234,7 @@ const Slide = ({item}) => {
       <>
         <KeyboardAvoidingView style={{ position:'absolute',
           bottom:height*0.21,width:'100%',flexDirection:'row',justifyContent:'space-around'
-          }} behavior={Platform.OS === 'ios' ? 'padding' : "height"}>
+          }} behavior={Platform.OS === 'ios' ? 'padding' : "padding"}>
 
 {Platform.OS === 'ios' ?(
     <>
@@ -291,9 +294,9 @@ const Slide = ({item}) => {
       </>
     ):(
       <>
-        <KeyboardAvoidingView style={{ position:'absolute',
+          <KeyboardAvoidingView style={{ position:'absolute',
           bottom:height*0.21,width:'100%',flexDirection:'row',justifyContent:'space-around'
-          }} behavior={Platform.OS === 'ios' ? 'padding' : "height"}>
+          }} behavior={Platform.OS === 'ios' ? 'padding' : "padding"}>
 
 {Platform.OS === 'ios' ?(
     <>
@@ -345,6 +348,7 @@ const Slide = ({item}) => {
             <Text style={styles.label}>Password</Text>
             <TextInput  
               value={password}
+              secureTextEntry={true}
               onChangeText={onPasswordChange}
               style={styles.input}
             />  
