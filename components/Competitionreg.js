@@ -5,18 +5,22 @@ import { Dimensions } from "react-native";
 import { BlurView } from 'expo-blur';
 
 
-//dropdown and datepicker
+//dropdown and datepicker and imagepicker
 import DropDownPicker from 'react-native-dropdown-picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import * as ImagePicker from 'expo-image-picker';
 
 //Import fonts
 import * as Font from 'expo-font';
 
+
 //firebase
 import { signOut } from 'firebase/auth';
-import { auth } from '../firebase';
+import { auth, storage } from '../firebase';
 import  {Timestamp} from 'firebase/firestore';//import firestore functions
 import { createCompetition, getUser } from '../Database';
+import { getDownloadURL, ref, uploadBytes } from 'firebase/storage';
+
 
 //Import images
 
@@ -43,28 +47,136 @@ var height = Dimensions.get('window').height;
 export default function Competitionreg({navigation}) {
 
 
-  //create new competition
-  const createCompReg= async() =>{
+  const [badge, onBadgeChange] = useState('/');
+  const [image, setImage] = useState('/');
+  const [imageplace, setImageplace] = useState(null);
 
-    const data={
-      title: title,
-      description:description,
-      venue:venue,
-      age:age,
-      gender:gender,
-      rank:rank,
-      date:date,
-      dateCreated : Timestamp.fromDate(new Date()),
-      maxplayers:maxplayers,
-      hole:hole,
-      //badge img
-      //card img
+  const addCompetition = async() =>{
+    await handleImageUpload()
+   
+}
+
+
+  const handleImageUpload = async() =>{
+    const imagebanner = ref(storage, 'images/'+ title+'banner'+ Timestamp.fromDate(new Date()) + ".jpg" )
+    const imagebadge = ref(storage, 'images/'+ title+'badge'+ Timestamp.fromDate(new Date()) + ".jpg" )
+    
+    const blob = await new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.onload = function () {
+          resolve(xhr.response);
+        };
+        xhr.onerror = function (e) {
+          console.log(e);
+          reject(new TypeError("Network request failed"));
+        };
+        xhr.responseType = "blob";
+        xhr.open("GET", image, true);
+        xhr.send(null);
+    });
+
+    const blob2 = await new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      xhr.onload = function () {
+        resolve(xhr.response);
+      };
+      xhr.onerror = function (e) {
+        console.log(e);
+        reject(new TypeError("Network request failed"));
+      };
+      xhr.responseType = "blob";
+      xhr.open("GET", badge, true);
+      xhr.send(null);
+  });
+
+
+
+    await uploadBytes(imagebanner, blob).then((snapshot) => {
+      getDownloadURL(snapshot.ref).then((url) => {
+        console.log(url)
+
+        uploadBytes(imagebadge, blob2).then((snapshot) => {
+          getDownloadURL(snapshot.ref).then((url2) => {
+              console.log(url2)
+              createCompetition({ title: title,
+                description:description,
+                venue:venue,
+                age:age,
+                gender:gender,
+                rank:rank,
+                date:date,
+                dateCreated : Timestamp.fromDate(new Date()),
+                maxplayers:maxplayers,
+                hole:hole,
+                badge:url2,
+                image:url})
+              })
+          
+         .catch((error) => console.log(error))
+     })
+        
+    })
+   .catch((error) => console.log(error))
+    })
+
+
+
+
+
+
+
+
+.catch((error) => console.log(error))
+    // We're done with the blob, close and release it
+    blob.close();
+    navigation.pop();
     }
 
-await createCompetition(data)
 
-      navigation.pop()
-}
+
+  
+
+  const pickImage = async () => {
+    // No permissions request is necessary for launching the image library
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.All,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 1,
+    });
+
+    console.log(result);
+
+    if (!result.cancelled) {
+      setImage(result.uri);
+    }
+  };
+
+  const pickImage2 = async () => {
+    // No permissions request is necessary for launching the image library
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.All,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 1,
+    });
+    setImageplace('1')
+    console.log(result);
+
+    if (!result.cancelled) {
+      onBadgeChange(result.uri);
+    }
+  };
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -74,8 +186,7 @@ await createCompetition(data)
     const [maxplayers, onmaxplayersChange] = useState('');
 
 
-    const [badge, onBadgeChange] = useState('');
-    const [image, onImageChange] = useState('');
+
 
 
 
@@ -174,13 +285,14 @@ await createCompetition(data)
         <Text style={styles.heading}>Tournament form</Text>
 
         <View  style={{width:width, height:height*0.75, paddingTop:30, paddingBottom:30}} >
-
     <ScrollView >
 
     <Text style={styles.label}>Card Backdrop</Text>
-    <View style={styles.backdrop}>
-
+    <View style={styles.backdrop}> 
     <Image source={imgplacehldr} style={{position:'absolute',width:80, height:80, marginTop:20}}/>
+    <TouchableOpacity onPress={pickImage}>
+    <Image source={{uri: image}} style={styles.imgback}/>
+    </TouchableOpacity>
     </View>
 
 
@@ -278,13 +390,13 @@ setItems={setItems3}
 
         <View style={{flexDirection:'row', justifyContent:'space-evenly', marginTop:20}}>
 
-          <TouchableOpacity onPress={showDatepicker}>
+          <TouchableOpacity style={{justifyContent: 'center'}} onPress={showDatepicker}>
           <View style={styles.button}>
           <Text style={styles.btntext}>Date</Text>
               </View>
           </TouchableOpacity >
 
-          <TouchableOpacity onPress={showTimepicker}>
+          <TouchableOpacity  style={{justifyContent: 'center'}} onPress={showTimepicker}>
           <View style={styles.button}>
           <Text style={styles.btntext}>Time</Text> 
               </View>
@@ -298,7 +410,24 @@ setItems={setItems3}
           <Text style={styles.label}>Badge</Text>
     <View style={styles.badge}>
       <Image source={badgeimg}/>
-      <Image source={imgplacehldr} style={{position:'absolute',width:80, height:80, marginTop:10}}/>
+
+
+
+
+        {imageplace == null ? (
+        <>
+          <Image source={imgplacehldr} style={{position:'absolute',width:80, height:80, marginTop:10}}/>
+
+        </>
+      ):(
+      <>
+      </>
+        )}
+ 
+      
+      <TouchableOpacity onPress={pickImage2}>
+    <Image source={{uri: badge}} style={styles.imgbadge}/>
+    </TouchableOpacity>
 
     </View>
 
@@ -323,7 +452,7 @@ setItems={setItems3}
 </View>
 
 <View style={{position:'absolute' , bottom:40, alignSelf:'center'}}>
-            <TouchableOpacity onPress={createCompReg}>
+            <TouchableOpacity onPress={addCompetition}>
               <View style={styles.hostbtn}>
               <Text style={styles.hosttext}>Host Tournament</Text>
           </View>
@@ -346,10 +475,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#fff',
   },
-  backdrop:{
-    width,
-    height:height*0.30
-},
 back:{
     position:'absolute',
     width:50,
@@ -408,15 +533,11 @@ heading:{
     backgroundColor: "#68BF7B",
     marginTop:height/120,
     width: width*0.38,
-    minHeight:height*0.070,
+    height:60,
     borderRadius:7,
     fontFamily:'Roboto',
     paddingLeft:10,
     fontSize:16
-  },
-  btntext:{
-    textAlign:'center',
-    marginTop:10
   },
   btntext:{
     textAlign:'center',
@@ -463,4 +584,19 @@ heading:{
     fontSize:26,
     fontFamily:'Allan' 
   },
+  imgback:{
+    width:width*0.83,
+     height:120,
+      borderRadius:10,
+      alignSelf:'center'
+  },
+  imgbadge:{
+    height:60,
+    width:60,
+    alignItems:'center',
+    borderRadius:10,
+    alignSelf:'center',
+    
+     marginTop:-85
+  }
 });

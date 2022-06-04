@@ -1,17 +1,18 @@
 //Import Components
-import react, {useState, useEffect} from 'react';
-import { StatusBar,StyleSheet, Text, View, SafeAreaView, Image, TouchableOpacity,ScrollView } from 'react-native';
+import React, {useState, useEffect} from 'react';
+import { StatusBar,StyleSheet, Text, View, SafeAreaView, Image, TouchableOpacity,ScrollView,AsyncStorage } from 'react-native';
 import { Dimensions } from "react-native";
 import { BlurView } from 'expo-blur';
-
+import * as ImagePicker from 'expo-image-picker';
+import { useFocusEffect } from '@react-navigation/native'
 //Import fonts
 import * as Font from 'expo-font';
 
 //firebase
 import { signOut } from 'firebase/auth';
-import { auth } from '../firebase';
-import { getUser } from '../Database';
-
+import { auth, storage } from '../firebase';
+import { getUser, updateProfile } from '../Database';
+import { getDownloadURL, ref, uploadBytes } from 'firebase/storage';
 
 
 //Import images
@@ -19,9 +20,10 @@ import test from '../assets/images/test.png';
 import arrow from '../assets/images/backarrow.png';
 import logout from '../assets/images/logout.png';
 import flag from '../assets/images/flag.png';
-import testpfp from '../assets/images/testpfp.png';
 import badge from '../assets/images/badge.png';
-
+import camera from '../assets/images/camera.png';
+import cloud from '../assets/images/cloud.png';
+import { onSnapshot } from 'firebase/firestore';
 
 
 
@@ -38,6 +40,126 @@ var height = Dimensions.get('window').height;
 //Content
 export default function Profile({navigation}) {
 
+    useFocusEffect(
+
+        
+        React.useCallback(() => {
+
+            
+            const collectionRef = getUser();
+            const unsubscribe = onSnapshot(collectionRef, (snapshot) =>{
+               
+                 snapshot.forEach((doc) =>{
+                //     
+    
+                let user ={
+                    ...doc.data(),
+                    id: doc.id
+                }
+
+             
+                setUsers(user);
+                if(user.imguploaded == '1'){
+                    setImageselected('2'); 
+                    
+                 }else{
+                    setImageselected(null);    
+                 }
+                 console.log(imageselected)
+
+            })
+    
+               
+           
+            })
+
+
+
+            
+            return () =>
+            {
+                //do something when screen is unfocused
+                //usefull cleanup function
+                unsubscribe();
+
+
+            }
+            
+           
+        },[])
+
+        
+    )
+
+
+    const [image, setImage] = useState(null);
+    const [imageselected, setImageselected] = useState(null);
+
+    const handleImageUpload = async() =>{
+    const imageRef = ref(storage, 'images/'+auth.currentUser.uid  + ".jpg" )
+
+    const blob = await new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.onload = function () {
+          resolve(xhr.response);
+        };
+        xhr.onerror = function (e) {
+          console.log(e);
+          reject(new TypeError("Network request failed"));
+        };
+        xhr.responseType = "blob";
+        xhr.open("GET", image, true);
+        xhr.send(null);
+      });
+      await uploadBytes(imageRef, blob).then((snapshot) => {
+        getDownloadURL(snapshot.ref).then((url) => {
+            
+            updateProfile(auth.currentUser.uid, {profile:url, imguploaded:'1'})
+        })
+        .catch((error) => console.log(error))
+    })
+    .catch((error) => console.log(error))
+    // We're done with the blob, close and release it
+    blob.close();
+    setImageselected('2');
+    }
+
+
+   
+
+
+
+
+
+
+
+
+
+
+
+    const pickImage = async () => {
+      // No permissions request is necessary for launching the image library
+      let result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.All,
+        allowsEditing: true,
+        aspect: [4, 3],
+        quality: 1,
+      });
+  
+      setImageselected(null);
+      console.log(imageselected);
+
+      if (!result.cancelled) {
+        setImageselected('1');
+        console.log(imageselected);
+          setImage(result.uri);
+
+        
+      }
+
+    };
+
+
 
     const onSignOutPress = () =>{
         signOut(auth).then(() =>{
@@ -52,17 +174,12 @@ export default function Profile({navigation}) {
       const [users, setUsers]= useState([]);
 
       useEffect(() => {
-        fetchUser();
+
+
+        
         }, [])
         
-        const fetchUser = async () => {
-          const data = await getUser();
-          setUsers(data);
-          console.log(data);
 
-
-
-        }
 
 
 
@@ -72,31 +189,90 @@ export default function Profile({navigation}) {
         <StatusBar barStyle = "dark-content" hidden = {false} translucent = {true}/>
         <View>
         <Image source={test} style={styles.backdrop}/>
-        <TouchableOpacity style={styles.back} onPress={() => navigation.pop()}>
+        <TouchableOpacity style={styles.back} onPress={() =>  navigation.pop()}>
         <Image source={arrow} style={{marginTop:11, alignSelf:'center'}} />
         </TouchableOpacity>
         <TouchableOpacity style={styles.logout} onPress={onSignOutPress}>
         <Image source={logout} style={{marginTop:11, alignSelf:'center'}} />
         </TouchableOpacity>
-        <Image source={testpfp} style={styles.pfp}/>
+        
+    
+
+        {
+            imageselected == null ? (
+                <>
+                  <Image source={{uri:users.profile}} style={styles.pfp}/>
+                </>
+            ) : (imageselected == '2' ? (
+                <>
+                    <Image source={{uri:users.profile}} style={styles.pfp}/>
+                </>
+            ) : (
+                    <>
+                      
+                    </>
+                )
+            )
+        }
+
+
+        {imageselected == null ? (
+        <>
+        <TouchableOpacity onPress={() => pickImage()}>
+        <View style={{width:width*0.10, height:width*0.10,alignSelf:'center',marginTop:-width*0.10,borderRadius:width*0.10, marginLeft:90, backgroundColor:'#68BF7B'}}>
+        <Image source={camera} style={{width:width*0.05, height:width*0.05,alignSelf:'center',marginTop:width*0.027 }}/> 
+        </View>
+        </TouchableOpacity>
+
+        </>
+      ):(
+      <>
+
+      </>
+        )}
+
+{imageselected == 1 ? (
+        <>
+         <Image source={{uri:image}} style={{width:width*0.35,height:width*0.35,alignSelf:'center',marginTop:-width*0.30,borderRadius:width*0.30}}/>
+        <TouchableOpacity onPress={() => handleImageUpload()}>
+        <View style={{width:width*0.10, height:width*0.10,alignSelf:'center',marginTop:-width*0.10,borderRadius:width*0.10, marginLeft:90, backgroundColor:'#68BF7B'}}>
+        <Image source={cloud} style={{width:width*0.05, height:width*0.05,alignSelf:'center',marginTop:width*0.027 }}/> 
+        </View>
+        </TouchableOpacity>
+       
+        </>
+      ):(
+      <>
+
+      </>
+        )}
+
+
+
+
+
+
+
+
         <View style={{flexDirection:'row',position:'absolute', bottom:height*0.03, alignSelf:'flex-end'}}>
+
         <BlurView
-            style={{width:width*0.12,height:height*0.08, zIndex:2, borderRadius:width*0.015, overflow:'hidden', marginRight:10}}
+            style={{width:width*0.12,height:height*0.08, zIndex:2, borderRadius:width*0.015, overflow:'hidden', marginRight:10, alignItems:'center'}}
             tint="light"
             intensity={70}
             reducedTransparencyFallbackColor="white"
         >
             <Image source={badge} style={{ alignSelf:'center' ,width:'90%', height:'60%', marginTop:5}}/>
-            <Text style={{color:'white', fontSize:8, textAlign:'center', marginTop:'15%'}}>Rank {users.rank}</Text>
+            <Text style={{color:'white', fontSize:8, textAlign:'center',position:'absolute', bottom:3}}>Rank {users.rank}</Text>
         </BlurView>
         <BlurView
-            style={{width:width*0.12,height:height*0.08, zIndex:2, borderRadius:width*0.015, overflow:'hidden', marginRight:10}}
+            style={{width:width*0.12,height:height*0.08, zIndex:2, borderRadius:width*0.015, overflow:'hidden', marginRight:10, alignItems:'center'}}
             tint="light"
             intensity={70}
             reducedTransparencyFallbackColor="white"
         >
             <Text style={{color:'white', fontSize:32, textAlign:'center', marginTop:'15%'}}>{users.handicap}</Text>
-            <Text style={{color:'white', fontSize:8, textAlign:'center', marginTop:'20%'}}>Handicap</Text>
+            <Text style={{color:'white', fontSize:8, textAlign:'center',position:'absolute', bottom:3}}>Handicap</Text>
         </BlurView>
         </View>
         </View>
@@ -222,7 +398,6 @@ logout:{
 pfp:{
     width:width*0.35,
     height:width*0.35,
-    backgroundColor:'red',
     alignSelf:'center',
     marginTop:-width*0.30,
     borderRadius:width*0.30

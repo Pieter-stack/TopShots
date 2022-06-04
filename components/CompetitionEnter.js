@@ -1,8 +1,10 @@
 //Import Components
-import react, {useState, useEffect} from 'react';
-import { StatusBar,StyleSheet, Text, View, SafeAreaView, Image, TouchableOpacity,ScrollView,TextInput,Button } from 'react-native';
+import React, {useState, useEffect,useRef} from 'react';
+import { StatusBar,StyleSheet, Text, View, SafeAreaView, Image, TouchableOpacity,ScrollView,TextInput,Button,Animated } from 'react-native';
 import { Dimensions } from "react-native";
 import { BlurView } from 'expo-blur';
+import { useFocusEffect } from '@react-navigation/native'
+import LottieView from 'lottie-react-native';
 
 
 
@@ -11,15 +13,16 @@ import { BlurView } from 'expo-blur';
 import * as Font from 'expo-font';
 
 //firebase
-import { signOut } from 'firebase/auth';
+
 import { auth } from '../firebase';
 
 
 //Import images
 
 import arrow from '../assets/images/backarrow.png';
-import test from '../assets/images/test.png';
 import flag from '../assets/images/flag.png';
+import { checkIfalreadyentered, enterCompetition } from '../Database';
+import { onSnapshot } from 'firebase/firestore';
 
     //convert seconds to date
     const convertToDate = (seconds) => {
@@ -44,17 +47,90 @@ var height = Dimensions.get('window').height;
 export default function Competitionenter({route, navigation}) {
 
     const currentcomp = route.params;
+    const id = currentcomp.id;
+    const uid = auth.currentUser.uid
+
+
+const enterComp = async() =>{
+   await enterCompetition(id);
+   setActive("true");
+ //navigation.navigate("Leaderboard" , currentcomp)
+
+}
+
+
+useFocusEffect(
+        
+  React.useCallback(() => {
+  
+getjoined();
+
+handleLikeAnimation(); 
+
+
+console.log("This is "+ active)
+
+
+return () =>
+{
+
+}
+     
+  },[])
+  
+)
+
+
+const [active, setActive] = useState('');
+
+      const getjoined = async() =>{
+        //TODO: call db function
+        const data = await checkIfalreadyentered(id);
+        if(data == "true"){
+          setActive("true");
+          
+
+        }else{
+          setActive("false");
+        }
+        
+    }
+
+
+    const progress = useRef(new Animated.Value(0)).current;
+     
+    const handleLikeAnimation = () => {
+      Animated.timing(progress, {
+        toValue: 1,
+        duration: 3000,
+        useNativeDriver: true,
+      }).start();
+    };
+
+
+    const handleLikeAnimation2 = () => {
+      if(active == 'true'){
+      setTimeout(() => {
+        navigation.navigate("Leaderboard", currentcomp);
+      }, 3000);
+    }
+    };
+    
 
      
 
   //Content Render
   return (
+
+    
     <View style={styles.container}>
+      {active == 'false'?(
+        <>
         <StatusBar barStyle = "dark-content" hidden = {false} translucent = {true}/>
-        <Image source={test} style={{width, height, alignSelf:'center', position:'absolute', zIndex:-1}}/>
+        <Image source={{uri: currentcomp.image}} style={{width, height, alignSelf:'center', position:'absolute', zIndex:-1}}/>
         <View style={{backgroundColor:'rgba(0, 0, 0, 0.3)', width, height, alignSelf:'center', position:'absolute', zIndex:2}}>
 
-        <TouchableOpacity style={styles.back} onPress={() => navigation.pop()}>
+        <TouchableOpacity style={styles.back} onPress={() => navigation.navigate("Homepage")}>
         <Image source={arrow} style={{marginTop:11, alignSelf:'center'}} />
         </TouchableOpacity>
         <Text style={styles.titles}>{currentcomp.title}</Text>
@@ -99,7 +175,7 @@ export default function Competitionenter({route, navigation}) {
         
 
         <View style={{position:'absolute' , bottom:40, alignSelf:'center'}}>
-        <TouchableOpacity onPress={()=> navigation.navigate("Leaderboard" , currentcomp)}>
+        <TouchableOpacity onPress={()=> enterComp() && handleLikeAnimation() }>
               <View style={styles.btn}>
               <Text style={styles.btnText}>Enter Tournament</Text>
           </View>
@@ -113,6 +189,14 @@ export default function Competitionenter({route, navigation}) {
 
         
         </View>
+        </>
+         ):(
+           <>
+            <View style={{justifyContent:'center', width, height}} onAnimationFinish={() => navigation.navigate("Leaderboard", currentcomp)}>
+         <LottieView  style={{width:50, height:100, alignSelf:'center'}} progress={progress} source={require('../assets/lottie/loaderlottie.json')} autoPlay loop={false}  onAnimationFinish={handleLikeAnimation2()}></LottieView> 
+           </View>                                                                                                                                                              
+           </>
+         )}
     </View>
   );
 }

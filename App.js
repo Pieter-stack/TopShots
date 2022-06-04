@@ -149,13 +149,15 @@ const styles = StyleSheet.create({
 //run project anywhere
 //expo-cli start --tunnel
 
+//API
+//https://avatars.dicebear.com/styles/initials
 
 //glassmorphism
 //TODO: https://docs.expo.dev/versions/latest/sdk/linear-gradient/
 
 //bottom drawer
 //https://www.youtube.com/watch?v=KvRqsRwpwhY
-
+//https://github.com/cesardeazevedo/react-native-bottom-sheet-behavior
 
 //active classes
 //https://stackoverflow.com/questions/41224418/react-native-add-active-class-when-push-the-button

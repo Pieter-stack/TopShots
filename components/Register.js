@@ -52,6 +52,10 @@ const slides =[
 //Content
 export default function Register({navigation}) {
 
+
+
+
+
 //get current slide index point
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
   const ref= React.useRef(null);
@@ -84,10 +88,25 @@ export default function Register({navigation}) {
   const [password, onPasswordChange] = useState('');
 
 
+  function random_item(items)
+{
+  
+return items[Math.floor(Math.random()*items.length)];
+     
+}
+
+var items = ["amber", "blue", "blueGrey", "brown", "cyan", "deepOrange", "deepPurple", "green", "grey", "indigo", "lightBlue", "lightGreen", "lime", "orange", "pink","purple", "red", "teal", "yellow"];
+var color = random_item(items);
+
+// API
+var apipfp = "https://avatars.dicebear.com/api/initials/"+Name+"%20"+surname+".png?backgroundColors[]="+color+"";
+
+
+
 
 //onPress Register a user
 const handleRegisterPress = () =>{
-
+  apipfp
         //create user function  (auth instance, email, password)
         createUserWithEmailAndPassword(auth, email, password)
         .then((userCredentials) => {
@@ -97,7 +116,7 @@ const handleRegisterPress = () =>{
                  
                 
                 
-                createUserOnRegister(user,Name, surname, handicap, username, age, gender)
+                createUserOnRegister(user,Name, surname, handicap, username, age, gender,apipfp)
  
                  //TODO: add user to db
         })

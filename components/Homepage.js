@@ -1,9 +1,11 @@
 //Import Components
-import react, {useState, useEffect} from 'react';
+import React, {useState, useEffect} from 'react';
 import { StatusBar,StyleSheet, Text, View, SafeAreaView, Image, TouchableOpacity,ScrollView,TouchableHighlight,AsyncStorage } from 'react-native';
+//import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Dimensions } from "react-native";
 import { BlurView } from 'expo-blur';
-
+import { useFocusEffect } from '@react-navigation/native'
+import { doc, onSnapshot } from 'firebase/firestore'
 
 
 //Import fonts
@@ -19,7 +21,7 @@ import rectangle from '../assets/images/rectangle.png';
 import test from '../assets/images/test.png';
 import testpfp from '../assets/images/testpfp.png';
 import flag from '../assets/images/flag.png';
-import { getAllComps } from '../Database';
+import { getAllCompsRealtime, getUser } from '../Database';
 
 //Get width and height of device for responsiveness
 var width = Dimensions.get('window').width;
@@ -50,18 +52,82 @@ export default function Homepage({navigation}) {
 
 
 
+
+
+
+    const savestate = async () => {
+        try {
+          await AsyncStorage.setItem('grid','true');
+        } catch (error) {
+          // Error saving data
+        }
+      };
+
+
+
+      const savestate2 = async () => {
+        try {
+          await AsyncStorage.setItem('grid','false');
+        } catch (error) {
+          // Error saving data
+        }
+      };
+
+      const getstate = async () => {
+        try {
+          const value = await AsyncStorage.getItem('grid');
+        
+          if (value == 'true') {
+            // We have data!!
+            setIsPress(true);
+            setIsPress2(false);
+            setActive('1')
+            
+          
+          }else if (value == 'false'){
+            setIsPress(false);
+            setIsPress2(true); 
+           setActive(2) 
+          }
+
+
+
+          
+        } catch (error) {
+          // Error retrieving data
+        }
+
+
+    
+
+
+      };
+
+
+      useEffect(() =>{
+        getstate()
+
+
+
+    })
+
+
+
+
+
+
+
+
+
+
+
     const touchProps = {
         
         underlayColor: 'white',
         style: isPress ? {opacity:1} : {opacity:0.5},
         onHideUnderlay: () => setIsPress(true),
         onShowUnderlay: () => setIsPress2(false),
-       
-        
-       
-        
-       
-        
+ 
       };
 
       const touchProps2 = {
@@ -76,16 +142,102 @@ export default function Homepage({navigation}) {
 
 
 
-useEffect(() => {
-    fetchAllComps();
-    }, [])
+      
+
+    useFocusEffect(
+        
+        React.useCallback(() => {
+          
+            const collectionRef = getAllCompsRealtime();
+            const collectionRef2 = getUser();
+            const unsubscribe = onSnapshot(collectionRef, (snapshot) =>{
+                let compsData = []
+                 snapshot.forEach((doc) =>{
+                //     
     
-    const fetchAllComps = async () => {
-      const data = await getAllComps();
-      setComps(data);
+                let comp ={
+                    ...doc.data(),
+                    id: doc.id
+                }
+                compsData.push(comp)
+            })
+    
+               
+                setComps(compsData);
+            })
+
+
+            const unsubscribe2 = onSnapshot(collectionRef2, (snapshot) =>{
+               
+                 snapshot.forEach((doc) =>{
+                //     
+    
+                let user ={
+                    ...doc.data(),
+                    id: doc.id
+                }
+
+
+                setUsers(user);
+            })
+    
+               
+           
+            })
+
+
+
+            
+            return () =>
+            {
+                //do something when screen is unfocused
+                //usefull cleanup function
+                unsubscribe();
+                unsubscribe2();
+            }
+           
+        },[])
+        
+    )
+
+
+        //get current user data
+    const [users, setUsers]= useState([]);
+
+    // useEffect(() => {
+    //   fetchUser();
+    //   }, [])
       
-      
-    }
+    //   const fetchUser = async () => {
+    //     const data = await getUser();
+    //     setUsers(data);
+    //     console.log(data.name);
+
+
+
+    //   }
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     
     //convert seconds to date
     const convertToDate = (seconds) => {
@@ -111,7 +263,7 @@ useEffect(() => {
         <View style={{flexDirection:'row', justifyContent:'space-between'}}>
             <Image source={logo} style={styles.logoimg}></Image>
             <TouchableOpacity onPress={() => navigation.push('Profile')}>
-            <Image resizeMode={"contain"} source={testpfp} style={styles.pfp} ></Image>
+            <Image resizeMode={"contain"} source={{uri:users.profile}} style={styles.pfp} ></Image>
             </TouchableOpacity>
         </View>
             <View style={{flexDirection:'row', justifyContent:'space-between'}}>
@@ -119,7 +271,7 @@ useEffect(() => {
                 <View style={{flexDirection:'row', justifyContent:'space-between'}}>
 
 
-<TouchableHighlight {...touchProps} onPress={() => setActive('1')}>
+<TouchableHighlight {...touchProps} onPress={() => { savestate();}}>
                 <Image source={rectangle} style={styles.icon1}></Image>
 </TouchableHighlight>
 
@@ -127,7 +279,7 @@ useEffect(() => {
                 <Image source={line} style={styles.icon2}></Image>
 
 
-<TouchableHighlight {...touchProps2} onPress={() => setActive('2')}>
+<TouchableHighlight {...touchProps2} onPress={() =>{ savestate2();}}>
                 <Image source={square} style={styles.icon1}></Image>
 </TouchableHighlight>
 
@@ -153,7 +305,7 @@ useEffect(() => {
 
 
 
-{active == '1'? (
+{active == '1' ? (
 
 <>
 
@@ -161,7 +313,7 @@ useEffect(() => {
      <TouchableOpacity key={index} onPress={()=> navigation.navigate("CompEnter" , comp)} >
 
 <View style={styles.rowAlign}>
-                            <Image  resizeMode={"cover"} source={test} style={styles.divImg}/>
+                            <Image  resizeMode={"cover"} source={{uri: comp.image}} style={styles.divImg}/>
                         <View style={styles.opacitydiv}>
                             <View style={{flexDirection:'row'}}>
                                     <Text style={styles.divheading}>{comp.title}</Text>
@@ -204,10 +356,12 @@ useEffect(() => {
 <>
 
 {comps.map((comp, index) => (
+
+    
      <TouchableOpacity key={index}  onPress={()=> navigation.navigate("CompEnter" , comp)} >
 
                         <View style={styles.columnAlign}>
-                            <Image  resizeMode={"cover"} source={test} style={styles.divImg}/>
+                            <Image  resizeMode={"cover"} source={{uri: comp.image}} style={styles.divImg}/>
                             <View style={styles.opacitydiv}>
                                 <View style={{flexDirection:'row'}}>
                                         <Text style={styles.divheadinglong}>{comp.title}</Text>

@@ -124,7 +124,7 @@ export default function Login({navigation}) {
   )
 }
       </KeyboardAvoidingView>
-          <View style={{position:'absolute' , bottom:40}}>
+          <View style={{position:'absolute' , bottom:20}}>
             <TouchableOpacity onPress={handleLoginPress}>
               <View style={styles.loginbtn}>
               <Text style={styles.loginbtnText}>Login</Text>

@@ -11,7 +11,6 @@ import { BlurView } from 'expo-blur';
 import * as Font from 'expo-font';
 
 //firebase
-import { signOut } from 'firebase/auth';
 import { auth } from '../firebase';
 
 
@@ -43,37 +42,79 @@ export default function Leaderboard({route, navigation}) {
   return (
     <View style={styles.container}>
         <StatusBar barStyle = "dark-content" hidden = {false} translucent = {true}/>
-        <TouchableOpacity style={styles.back} onPress={() => navigation.pop()}>
+        <TouchableOpacity style={styles.back} onPress={() => navigation.navigate("Homepage")}>
         <Image source={arrow} style={{marginTop:11, alignSelf:'center'}} />
         </TouchableOpacity>
         <Text style={styles.heading}>{currentcomp.title}</Text>
         <Text style={styles.venuetitle}>{currentcomp.venue}</Text>
         <Text style={styles.leaderboardheading}>Leaderboard</Text>
-        <View style={{backgroundColor:'red', width, height:height*0.37}}>
-            <View style={{width:125, height:125, borderColor:'#FFD940', borderWidth:3, borderRadius:100, alignSelf:'center', marginTop:20}}>
-            <View style={{width:110, height:110, backgroundColor:'blue', borderRadius:100, alignSelf:'center', marginVertical:4}}>
-            <View style={{width:40, height:40, backgroundColor:'#FFD940', borderRadius:100, alignSelf:'flex-end', marginVertical:4, marginRight:-10}}>
-
+        <View style={{width, height:height*0.4}}>
+            <View style={{width:width*0.3, height:width*0.3, borderColor:'#FFD940', borderWidth:3, borderRadius:100, alignSelf:'center', marginTop:height*0.02}}>
+              <View style={{width:width*0.268, height:width*0.268, borderRadius:100, alignSelf:'center', marginVertical:height*0.0035}}>
+              <Image  resizeMode={"cover"}  source={{uri: currentcomp.image}}  style={{width:width*0.268, height:width*0.268, borderRadius:100, alignSelf:'center'}}/>
+                <View style={{width:width*0.08, height:width*0.08, backgroundColor:'#FFD940', borderRadius:100, alignSelf:'flex-end', marginVertical:4, marginRight:-10,justifyContent: 'center', marginTop:-width*0.268}}>
+                  <Text style={{fontSize:16, textAlign:'center' }}>1<Text style={{fontSize:12}}>st</Text></Text>
+                </View>
+              </View>
+            </View>
+            <View style={{width:width*0.25, height:width*0.25, borderColor:'#FFD940', borderWidth:3, borderRadius:100, alignSelf:'flex-start', marginTop:-height*0.02, marginLeft:20}}>
+              <View style={{width:width*0.216, height:width*0.216, borderRadius:100, alignSelf:'center', marginVertical:height*0.0035}}>
+              <Image  resizeMode={"cover"}  source={{uri: currentcomp.image}}  style={{width:width*0.216, height:width*0.216, borderRadius:100, alignSelf:'center'}}/>
+                <View style={{width:width*0.07, height:width*0.07, backgroundColor:'#FFD940', borderRadius:100, alignSelf:'flex-end', marginVertical:4, marginRight:-10,justifyContent: 'center', marginTop:-width*0.216}}>
+                  <Text style={{fontSize:12, textAlign:'center' }}>2<Text style={{fontSize:8}}>nd</Text></Text>
+                </View>
+              </View>
+            </View>
+            <View style={{width:width*0.25, height:width*0.25, borderColor:'#FFD940', borderWidth:3, borderRadius:100, alignSelf:'flex-end', marginTop:-width*0.25, marginRight:20}}>
+              <View style={{width:width*0.216, height:width*0.216, borderRadius:100, alignSelf:'center', marginVertical:height*0.0035}}>
+              <Image  resizeMode={"cover"}  source={{uri: currentcomp.image}}  style={{width:width*0.216, height:width*0.216, borderRadius:100, alignSelf:'center'}}/>
+                <View style={{width:width*0.07, height:width*0.07, backgroundColor:'#FFD940', borderRadius:100, alignSelf:'flex-end', marginVertical:4, marginRight:-10,justifyContent: 'center', marginTop:-width*0.216}}>
+                  <Text style={{fontSize:12, textAlign:'center' }}>3<Text style={{fontSize:8}}>rd</Text></Text>
+                </View>
+              </View>
+            </View>
+            <View style={{ alignSelf:'center', alignItems:'center', width:140 , position:'absolute', marginTop:width*0.36 }}>
+            <Text style={{fontSize:12, textAlign:'center', alignSelf:'center'}}>Tiger woods</Text>
+            <View style={{width:width*0.15, height:height*0.03, borderRadius:100,borderColor:'#68BF7B', borderWidth:2, marginTop:10, justifyContent:'center' }}>
+            <Text style={{fontSize:12, textAlign:'center'}}>100</Text>
             </View>
             </View>
-            </View>
-            <View style={{width:100, height:100, borderColor:'#FFD940', borderWidth:3, borderRadius:100, alignSelf:'flex-start', marginTop:-40, marginLeft:20}}>
-            <View style={{width:85, height:85, backgroundColor:'blue', borderRadius:100, alignSelf:'center', marginVertical:4}}>
-            <View style={{width:25, height:25, backgroundColor:'#FFD940', borderRadius:100, alignSelf:'flex-end', marginVertical:4, marginRight:-10}}>
-
-            </View>
+            <View style={{ alignSelf:'flex-start', alignItems:'center', width:140, position:'absolute', marginTop:width*0.56  }}>
+            <Text style={{fontSize:12, textAlign:'center'}}>Collin Morikaea</Text>
+            <View style={{width:width*0.15, height:height*0.03, borderRadius:100,borderColor:'#68BF7B', borderWidth:2, marginTop:10, justifyContent:'center'  }}>
+            <Text style={{fontSize:12, textAlign:'center'}}>100</Text>
             </View>
             </View>
-            <View style={{width:100, height:100, borderColor:'#FFD940', borderWidth:3, borderRadius:100, alignSelf:'flex-end', marginTop:-100, marginRight:20}}>
-            <View style={{width:85, height:85, backgroundColor:'blue', borderRadius:100, alignSelf:'center', marginVertical:4}}>
-            <View style={{width:25, height:25, backgroundColor:'#FFD940', borderRadius:100, alignSelf:'flex-end', marginVertical:4, marginRight:-10}}>
-
+            <View style={{ alignSelf:'flex-end', alignItems:'center', width:140 , position:'absolute', marginTop:width*0.56  }}>
+            <Text style={{fontSize:12, textAlign:'center'}}>Rickie Fowler</Text>
+            <View style={{width:width*0.15, height:height*0.03, borderRadius:100,borderColor:'#68BF7B', borderWidth:2, marginTop:10, justifyContent:'center'  }}>
+            <Text style={{fontSize:12, textAlign:'center'}}>100</Text>
             </View>
             </View>
-            </View>
-
         </View>
-        <View style={{backgroundColor:'blue', width, height:height*0.37}}>
+        <View style={{ width, height:height*0.37}}>
+          <ScrollView contentContainerStyle={{alignItems:'center', paddingTop:5, paddingBottom:5}}>
+
+
+          <View style={{width:width*0.82, height:75, backgroundColor:'#fff',borderRadius:9, marginBottom:10,shadowColor: '#5B5B5B',shadowOffset: {width: 0, height: 2},shadowOpacity: 0.4,elevation: 5, justifyContent:'center', marginLeft:width*0.08, flexDirection:'row'}}>
+          <View style={{width:width*0.18, height:55, backgroundColor:'#FFD940', borderRadius:8, justifyContent:'center', alignSelf:'center', position:'absolute', left:-width*0.08}}>
+          <Text style={{fontSize:16, textAlign:'center', fontWeight:'bold'}}>4</Text>
+          </View>
+          <Image  resizeMode={"cover"} source={{uri: currentcomp.badge}}    style={{width:55, height:55, borderRadius:100, backgroundColor:'red', alignSelf:'center', position:'absolute', left:width*0.12}}/>
+          <Text style={{fontSize:12, alignSelf:'center', width:width*0.3, position:'absolute', left:width*0.28, textAlign:'left'}}>Collin Morikaea</Text>
+
+          <TouchableOpacity style={{width:width*0.2, height:height*0.03, borderRadius:100,borderColor:'#68BF7B', borderWidth:2, justifyContent:'center', alignSelf:'center', position:'absolute', right:10}} onPress={() => navigation.navigate("Golfcourse")}>
+            <Text style={{fontSize:12, textAlign:'center'}}>Start</Text>
+            </TouchableOpacity>
+
+          </View>
+
+
+
+ 
+
+
+          </ScrollView>
 
         </View>
        
@@ -115,7 +156,7 @@ const styles = StyleSheet.create({
     fontFamily:'Allan',
     color:'#68BF7B',
     fontSize:30,
-    marginTop:30
+    marginTop:20
 
 
   }
