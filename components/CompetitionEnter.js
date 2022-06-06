@@ -14,7 +14,7 @@ import * as Font from 'expo-font';
 
 //firebase
 
-import { auth } from '../firebase';
+import { auth, db } from '../firebase';
 
 
 //Import images
@@ -22,7 +22,7 @@ import { auth } from '../firebase';
 import arrow from '../assets/images/backarrow.png';
 import flag from '../assets/images/flag.png';
 import { checkIfalreadyentered, enterCompetition, updatecompetitionUsersCount } from '../Database';
-import { onSnapshot } from 'firebase/firestore';
+import { collection, Firestore, onSnapshot, query, where } from 'firebase/firestore';
 
     //convert seconds to date
     const convertToDate = (seconds) => {
@@ -54,18 +54,40 @@ export default function Competitionenter({route, navigation}) {
 const enterComp = async() =>{
    await enterCompetition(id);
    setActive("true");
-   updatecompetitionUsersCount(id, {currentplayers:currentcomp.currentplayers+1})
+   updatecompetitionUsersCount(id, {currentplayers:comps.currentplayers+1})
 
  //navigation.navigate("Leaderboard" , currentcomp)
 
 }
 
 
-
+const [comps, setComps]= useState([]);
 
 useFocusEffect(
         
   React.useCallback(() => {
+
+    const competitionCollectionRef =  query(collection(db, "competitions"), where('id', "==",id));
+  
+
+
+    const unsubscribe = onSnapshot(competitionCollectionRef, (snapshot) =>{
+       snapshot.forEach((doc) =>{
+      //     
+
+      let comp ={
+          ...doc.data(),
+          id: doc.id
+      }
+
+      setComps(comp);
+  })
+
+     
+    
+  })
+
+
   
 getjoined();
 
@@ -74,7 +96,7 @@ handleLikeAnimation();
 
 return () =>
 {
-
+  unsubscribe()
 }
      
   },[])
@@ -113,7 +135,7 @@ const [active, setActive] = useState('');
     const handleLikeAnimation2 = () => {
       if(active == 'true'){
       setTimeout(() => {
-        navigation.navigate("Leaderboard", currentcomp);
+        navigation.navigate("Leaderboard", comps);
       }, 3000);
     }
     };
@@ -129,14 +151,14 @@ const [active, setActive] = useState('');
       {active == 'false'?(
         <>
         <StatusBar barStyle = "dark-content" hidden = {false} translucent = {true}/>
-        <Image source={{uri: currentcomp.image}} style={{width, height, alignSelf:'center', position:'absolute', zIndex:-1}}/>
+        <Image source={{uri: comps.image}} style={{width, height, alignSelf:'center', position:'absolute', zIndex:-1}}/>
         <View style={{backgroundColor:'rgba(0, 0, 0, 0.3)', width, height, alignSelf:'center', position:'absolute', zIndex:2}}>
 
         <TouchableOpacity style={styles.back} onPress={() => navigation.navigate("Homepage")}>
         <Image source={arrow} style={{marginTop:11, alignSelf:'center'}} />
         </TouchableOpacity>
-        <Text style={styles.titles}>{currentcomp.title}</Text>
-        <Text style={styles.descrip}>{currentcomp.description}</Text>
+        <Text style={styles.titles}>{comps.title}</Text>
+        <Text style={styles.descrip}>{comps.description}</Text>
         <BlurView
           style={{width:'100%',height:'50%', position:'absolute', zIndex:3, borderRadius:15, overflow:'hidden', bottom:0}}
           tint="light"
@@ -146,37 +168,37 @@ const [active, setActive] = useState('');
         <View style={{flexDirection:'row', flexShrink:1, marginTop:30}}>
 
             <Text style={styles.label}>Date:</Text>
-            <Text style={styles.labeltext}>{convertToDate(currentcomp.date.seconds)}</Text>
+            <Text style={styles.labeltext}>{convertToDate(comps.date.seconds)}</Text>
         </View>
         <View style={{flexDirection:'row', flexShrink:1, marginTop:15}}>
 
             <Text style={styles.label}>Venue:</Text>
-            <Text style={styles.labeltext}>{currentcomp.venue}</Text>
+            <Text style={styles.labeltext}>{comps.venue}</Text>
         </View>
         <View style={{flexDirection:'row', flexShrink:1, marginTop:15}}>
 
             <Text style={styles.label}>Gender:</Text>
-            <Text style={styles.labeltext}>{currentcomp.gender}</Text>
+            <Text style={styles.labeltext}>{comps.gender}</Text>
         </View>
 
         <View style={{flexDirection:'row', flexShrink:1, marginTop:15}}>
 
             <Text style={styles.label}>Age:</Text>
-            <Text style={styles.labeltext}>{currentcomp.age}</Text>
+            <Text style={styles.labeltext}>{comps.age}</Text>
         </View>
         <View style={{flexDirection:'row', flexShrink:1, marginTop:15}}>
 
         <Image source={flag} style={{marginLeft:width*0.08,marginTop:-3}}></Image>
-            <Text style={{color:'#fff',fontSize:16,fontFamily:'Roboto',marginLeft:width*0.01}}>{currentcomp.hole}</Text>
+            <Text style={{color:'#fff',fontSize:16,fontFamily:'Roboto',marginLeft:width*0.01}}>{comps.hole}</Text>
         </View>
         <View style={{flexDirection:'row', flexShrink:1, marginTop:-20}}>
-            <Text style={styles.max1}>{parseInt(currentcomp.currentplayers)}</Text>
+            <Text style={styles.max1}>{parseInt(comps.currentplayers)}</Text>
             <Text style={styles.max2}>/</Text>
-            <Text style={styles.max3}>{parseInt(currentcomp.maxplayers)}</Text>
+            <Text style={styles.max3}>{parseInt(comps.maxplayers)}</Text>
         </View>
 
 
-        {today > (currentcomp.date.seconds*1000)+60480000 ? (
+        {today > (comps.date.seconds*1000)+60480000 ? (
 
 <>
 <View style={{position:'absolute' , bottom:40, alignSelf:'center'}}>
@@ -188,7 +210,7 @@ const [active, setActive] = useState('');
 </View>
 </>
       ):(
-        today > currentcomp.date.seconds*1000  || currentcomp.currentplayers == currentcomp.maxplayers  ? (
+        today > comps.date.seconds*1000  || comps.currentplayers == comps.maxplayers  ? (
 
           <>
           <View style={{position:'absolute' , bottom:40, alignSelf:'center'}}>
@@ -219,7 +241,7 @@ const [active, setActive] = useState('');
         </>
          ):(
            <>
-            <View style={{justifyContent:'center', width, height}} onAnimationFinish={() => navigation.navigate("Leaderboard", currentcomp)}>
+            <View style={{justifyContent:'center', width, height}} onAnimationFinish={() => navigation.navigate("Leaderboard", comps)}>
          <LottieView  style={{width:50, height:100, alignSelf:'center'}} progress={progress} source={require('../assets/lottie/loaderlottie.json')} autoPlay loop={false}  onAnimationFinish={handleLikeAnimation2()}></LottieView> 
            </View>                                                                                                                                                              
            </>

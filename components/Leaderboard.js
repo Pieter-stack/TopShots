@@ -37,10 +37,7 @@ export default function Leaderboard({ route, navigation }) {
 
   useFocusEffect(
     React.useCallback(() => {
-      const scorecardCollectionRef = collection(
-        db,
-        "competitions/" + id + "/scorecard"
-      );
+      const scorecardCollectionRef = collection(db,"competitions/" + id + "/scorecard");
 
       const usersCollectionRef = collection(db, "users");
 

@@ -16,9 +16,9 @@ import * as Font from 'expo-font';
 
 //firebase
 import { signOut } from 'firebase/auth';
-import { auth, storage } from '../firebase';
-import  {Timestamp} from 'firebase/firestore';//import firestore functions
-import { createCompetition, getUser } from '../Database';
+import { auth, db, storage } from '../firebase';
+import  {addDoc, collection, doc, setDoc, Timestamp} from 'firebase/firestore';//import firestore functions
+import { getUser } from '../Database';
 import { getDownloadURL, ref, uploadBytes } from 'firebase/storage';
 
 
@@ -98,19 +98,31 @@ export default function Competitionreg({navigation}) {
         uploadBytes(imagebadge, blob2).then((snapshot) => {
           getDownloadURL(snapshot.ref).then((url2) => {
               console.log(url2)
-              createCompetition({ title: title,
-                description:description,
-                venue:venue,
-                age:age,
-                gender:gender,
-                rank:rank,
-                date:date,
-                dateCreated : Timestamp.fromDate(new Date()),
-                maxplayers:parseInt(maxplayers),
-                hole:hole,
-                badge:url2,
-                image:url,
-                currentplayers:0})
+              const newDocRef = doc(collection(db, "competitions"));
+               setDoc(
+                     newDocRef, 
+                     {
+                      title: title,
+                      description:description,
+                      venue:venue,
+                      age:age,
+                      gender:gender,
+                      rank:rank,
+                      date:date,
+                      dateCreated : Timestamp.fromDate(new Date()),
+                      maxplayers:parseInt(maxplayers),
+                      hole:hole,
+                      badge:url2,
+                      image:url,
+                      currentplayers:0,
+                       id: newDocRef.id
+                     }
+                 )
+
+
+
+
+
               })
           
          .catch((error) => console.log(error))

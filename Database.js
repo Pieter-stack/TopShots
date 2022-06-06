@@ -68,6 +68,12 @@ export const getAllCompsRealtime = () =>{
   return collection(db, 'competitions');
 }
 
+
+
+
+
+
+
 //get competitions
 
 // export const getAllComps = async () => {
@@ -181,5 +187,11 @@ export const checkIfalreadyentered = async (id) => {
 return joins;
 }
 
+
+//returns our collection reference that we want to listen for real updates
+export const getCompetitionRealtime = () =>{
+  return query(collection(db, "competitions"), where("uid", "==", auth.currentUser.uid));
+  
+}
 
 
