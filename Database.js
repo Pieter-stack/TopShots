@@ -54,6 +54,8 @@ return setDoc(userRef, userData);
 }
 
 
+
+
 //new competition
 export const createCompetition = (competition) =>{
 
@@ -94,6 +96,14 @@ export const updateProfile = (uid, data) =>{
 
 }
 
+
+//set our profiles data
+export const updatecompetitionUsersCount = (id, data) =>{
+  const userRef = doc(db, 'competitions', id);
+  return setDoc(userRef, data, {merge:true});//option to merge and not overrite
+
+}
+
 //enter a competition and get scorecard
 export const enterCompetition =async (id) =>{
 
@@ -122,6 +132,8 @@ export const enterCompetition =async (id) =>{
       hole16:'0',
       hole17:'0',
       hole18:'0',
+      currenthole:'0',
+      finalscore:'0',
 
 }
 
@@ -165,13 +177,7 @@ export const checkIfalreadyentered = async (id) => {
   } catch (e) {
     if (e !== BreakException) throw e;
   }
-
-
-    
-
-    
  
-// })  
 return joins;
 }
 

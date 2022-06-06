@@ -106,10 +106,11 @@ export default function Competitionreg({navigation}) {
                 rank:rank,
                 date:date,
                 dateCreated : Timestamp.fromDate(new Date()),
-                maxplayers:maxplayers,
+                maxplayers:parseInt(maxplayers),
                 hole:hole,
                 badge:url2,
-                image:url})
+                image:url,
+                currentplayers:0})
               })
           
          .catch((error) => console.log(error))
@@ -182,16 +183,19 @@ export default function Competitionreg({navigation}) {
 
     const [title, onTitleChange] = useState('');
     const [description, onDescriptionChange] = useState('');
-    const [venue, onVenueChange] = useState('');
+
     const [maxplayers, onmaxplayersChange] = useState('');
 
 
 
+    var today = new Date();
+    var dd = String(today.getDate()).padStart(2, '0');
+    var mm = String(today.getMonth() + 1).padStart(2, '0'); //January is 0!
+    var yyyy = today.getFullYear();
+    var today = new Date().getTime();
 
 
-
-
-    const [date, setDate] = useState(new Date(1598051730000));
+    const [date, setDate] = useState(new Date(today));
     const [mode, setMode] = useState('date');
     const [show, setShow] = useState(false);
 
@@ -265,10 +269,19 @@ export default function Competitionreg({navigation}) {
     ]);
 
 
-    var today = new Date();
-    var dd = String(today.getDate()).padStart(2, '0');
-    var mm = String(today.getMonth() + 1).padStart(2, '0'); //January is 0!
-    var yyyy = today.getFullYear();
+    const [open4, setOpen4] = useState(false);
+    const [venue, onVenueChange] = useState(null);
+    const [items4, setItems4] = useState([
+      {label: 'Sun City', value: 'Sun City'},
+      {label: 'Pebble Rock', value: 'Pebble Rock'}
+    ]);
+
+
+
+
+
+
+
 
 
      
@@ -297,14 +310,16 @@ export default function Competitionreg({navigation}) {
 
 
         <Text style={styles.label}>Title</Text>
-          <TextInput  
+          <TextInput
+          selectionColor={'#064635'}   
             value={title}
             onChangeText={onTitleChange}
             style={styles.input}
           />
 
         <Text style={styles.label}>Description</Text>
-          <TextInput  
+          <TextInput 
+          selectionColor={'#064635'} 
             value={description}
             onChangeText={onDescriptionChange}
             style={styles.input}
@@ -313,14 +328,26 @@ export default function Competitionreg({navigation}) {
 
 
         <Text style={styles.label}>Venue</Text>
-          <TextInput  
+
+        <DropDownPicker style={styles.dropdown} dropDownDirection="TOP"
+            containerStyle={{width:width/1.2, alignSelf:'center'}}
+
+            placeholder=""
+            open={open4}
             value={venue}
-            onChangeText={onVenueChange}
-            style={styles.input}
-          />    
+            items={items4}
+            setOpen={setOpen4}
+            setValue={onVenueChange}
+            setItems={setItems4}
+            />
+
+
+
 
 <Text style={styles.label}>Max Players</Text>
-          <TextInput  
+          <TextInput 
+          selectionColor={'#064635'} 
+          keyboardType='number-pad'  
             value={maxplayers}
             onChangeText={onmaxplayersChange}
             style={styles.input}
@@ -452,10 +479,8 @@ setItems={setItems3}
 </View>
 
 <View style={{position:'absolute' , bottom:40, alignSelf:'center'}}>
-            <TouchableOpacity onPress={addCompetition}>
-              <View style={styles.hostbtn}>
+            <TouchableOpacity  disabled={!title || !description || !venue || !maxplayers || !age || !gender || !hole || !rank || !date || badge=='/' || image =='/'}  onPress={addCompetition} style={!title || !description || !venue || !maxplayers || !age || !gender || !hole || !rank || !date || badge=='/' || image =='/' ? styles.disabled  : styles.hostbtn}>
               <Text style={styles.hosttext}>Host Tournament</Text>
-          </View>
           </TouchableOpacity>
 </View>
 
@@ -524,7 +549,8 @@ heading:{
     fontSize:16 ,
     backgroundColor:'rgba(0, 0, 0, 0)',
 
-  },  datePickerStyle: {
+  }, 
+   datePickerStyle: {
     width: 200,
     marginTop: 20,
   },
@@ -598,5 +624,13 @@ heading:{
     alignSelf:'center',
     
      marginTop:-85
+  },
+  disabled:{
+    opacity:0.5,
+    backgroundColor: '#064635',
+    width: width*0.84,
+    height:60,
+    alignSelf:'center',
+    borderRadius:7 
   }
 });

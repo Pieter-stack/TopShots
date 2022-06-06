@@ -4,6 +4,7 @@ import { StatusBar,StyleSheet, Text, View, SafeAreaView, Image, TouchableOpacity
 import { Dimensions } from "react-native";
 import { BlurView } from 'expo-blur';
 import { createUserOnRegister } from '../Database';
+import DropDownPicker from 'react-native-dropdown-picker';
 //firebase
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import {auth} from '../firebase';
@@ -81,7 +82,6 @@ export default function Register({navigation}) {
   const [Name, onNameChange] = useState('');
   const [surname, onSurnameChange] = useState('');
   const [age, onAgeChange] = useState('');
-  const [gender, onGenderChange] = useState('');
   const [handicap, onHandicapChange] = useState('');
   const [email, onEmailChange] = useState('');
   const [username, onUsernameChange] = useState('');
@@ -102,6 +102,12 @@ var color = random_item(items);
 var apipfp = "https://avatars.dicebear.com/api/initials/"+Name+"%20"+surname+".png?backgroundColors[]="+color+"";
 
 
+const [open, setOpen] = useState(false);
+const [gender, onGenderChange] = useState(null);
+const [items1, setItems1] = useState([
+  {label: 'Male', value: 'Male'},
+  {label: 'Female', value: 'Female'},
+]);
 
 
 //onPress Register a user
@@ -112,17 +118,11 @@ const handleRegisterPress = () =>{
         .then((userCredentials) => {
                  //executes when creation
                  const user = userCredentials.user;
-
-                 
-                
-                
                 createUserOnRegister(user,Name, surname, handicap, username, age, gender,apipfp)
- 
-                 //TODO: add user to db
         })
         .catch((error) =>{
             //executes when failure
-             Alert.alert(error.messsage);
+             Alert.alert('Failed to register please try again');
         
         })
 
@@ -160,10 +160,8 @@ const Slide = ({item}) => {
           {
           currentSlideIndex == slides.length -1 ? (           
             <View>
-              <TouchableOpacity onPress={handleRegisterPress}>
-                <View style={styles.nextbtn}>
+              <TouchableOpacity disabled={!Name || !surname || !handicap || !username || !age || !gender || !email || !password} onPress={handleRegisterPress} style={!Name || !surname || !handicap || !username || !age || !gender || !email || !password? styles.disabled  : styles.nextbtn}>
                   <Text style={styles.nextbtnText}>Finish</Text>    
-                </View>
               </TouchableOpacity>
             </View>
           ):(
@@ -215,12 +213,14 @@ const Slide = ({item}) => {
       >
         <Text style={styles.label}>Name</Text>
           <TextInput  
+          selectionColor={'#064635'}
             value={Name}
             onChangeText={onNameChange}
             style={styles.input}
           />
           <Text style={styles.label}>Surname</Text>
             <TextInput  
+            selectionColor={'#064635'}
               value={surname}
               onChangeText={onSurnameChange}
               style={styles.input}
@@ -232,13 +232,15 @@ const Slide = ({item}) => {
       <View
         style={{marginBottom:10, backgroundColor:'white',opacity:0.95, height:height*0.35}}>
         <Text style={styles.label}>Name</Text>
-          <TextInput  
+          <TextInput 
+          selectionColor={'#064635'} 
             value={Name}
             onChangeText={onNameChange}
             style={styles.input}
           />
           <Text style={styles.label}>Surname</Text>
             <TextInput  
+            selectionColor={'#064635'}
               value={surname}
               onChangeText={onSurnameChange}
               style={styles.input}
@@ -264,19 +266,29 @@ const Slide = ({item}) => {
         reducedTransparencyFallbackColor="white"
       >
         <Text style={styles.label}>Age</Text>
-          <TextInput  
+          <TextInput
+          selectionColor={'#064635'}  
+          keyboardType='number-pad'
             value={age}
             onChangeText={onAgeChange}
             style={styles.input}
           />
           <Text style={styles.label}>Gender</Text>
-            <TextInput  
-              value={gender}
-              onChangeText={onGenderChange}
-              style={styles.input}
-            />
+          <DropDownPicker style={styles.dropdown} dropDownDirection="TOP"
+containerStyle={{width:width/1.2, alignSelf:'center'}}
+
+placeholder=""
+open={open}
+value={gender}
+items={items1}
+setOpen={setOpen}
+setValue={onGenderChange}
+setItems={setItems1}
+/>
             <Text style={styles.label}>Handicap</Text>
-            <TextInput  
+            <TextInput 
+            selectionColor={'#064635'}
+            keyboardType='number-pad'  
               value={handicap}
               onChangeText={onHandicapChange}
               style={styles.input}
@@ -288,19 +300,29 @@ const Slide = ({item}) => {
            <View
         style={{marginBottom:10, backgroundColor:'white',opacity:0.95, height:height*0.35}}>
         <Text style={styles.label}>Age</Text>
-          <TextInput  
+          <TextInput 
+          selectionColor={'#064635'}
+          keyboardType='number-pad' 
             value={age}
             onChangeText={onAgeChange}
             style={styles.input}
           />
           <Text style={styles.label}>Gender</Text>
-            <TextInput  
-              value={gender}
-              onChangeText={onGenderChange}
-              style={styles.input}
-            />
+          <DropDownPicker style={styles.dropdown} dropDownDirection="TOP"
+containerStyle={{width:width/1.2, alignSelf:'center'}}
+
+placeholder=""
+open={open}
+value={gender}
+items={items1}
+setOpen={setOpen}
+setValue={onGenderChange}
+setItems={setItems1}
+/>
             <Text style={styles.label}>Handicap</Text>
-            <TextInput  
+            <TextInput 
+            selectionColor={'#064635'} 
+            keyboardType='number-pad' 
               value={handicap}
               onChangeText={onHandicapChange}
               style={styles.input}
@@ -325,26 +347,29 @@ const Slide = ({item}) => {
         intensity={30}
         reducedTransparencyFallbackColor="white"
       >
+        <Text style={styles.label}>Username</Text>
+            <TextInput
+            selectionColor={'#064635'}  
+              value={username}
+              onChangeText={onUsernameChange}
+              style={styles.input}
+            /> 
         <Text style={styles.label}>Email</Text>
           <TextInput  
+          selectionColor={'#064635'}
+          keyboardType='email-address'
             value={email}
             onChangeText={onEmailChange}
             style={styles.input}
           />
-          <Text style={styles.label}>Username</Text>
-            <TextInput  
-              value={username}
-              onChangeText={onUsernameChange}
-              style={styles.input}
-            />
+
             <Text style={styles.label}>Password</Text>
-            <TextInput  
+            <TextInput 
+            selectionColor={'#064635'} 
               value={password}
               onChangeText={onPasswordChange}
               style={styles.input}
               secureTextEntry={true}
-              errorStyle={{ color: 'red' }}
-              errorMessage='Incorrect Username'
             />
       </BlurView>
     </>
@@ -352,18 +377,21 @@ const Slide = ({item}) => {
     <>
       <View
         style={{marginBottom:10, backgroundColor:'white',opacity:0.95, height:height*0.35}}>
-        <Text style={styles.label}>Email</Text>
-          <TextInput  
-            value={email}
-            onChangeText={onEmailChange}
-            style={styles.input}
-          />
-          <Text style={styles.label}>Username</Text>
+        <Text style={styles.label}>Username</Text>
             <TextInput  
+          
               value={username}
               onChangeText={onUsernameChange}
               style={styles.input}
             />
+        <Text style={styles.label}>Email</Text>
+          <TextInput 
+           keyboardType='email-address' 
+            value={email}
+            onChangeText={onEmailChange}
+            style={styles.input}
+          />
+
             <Text style={styles.label}>Password</Text>
             <TextInput  
               value={password}
@@ -456,7 +484,30 @@ const Slide = ({item}) => {
       marginLeft:2,
       textDecorationLine: 'underline',
       fontFamily:'Roboto'   
-    }
+    },
+     dropdown:{
+      borderColor: "#68BF7B",
+      borderWidth:3,
+      marginTop:height/120,
+      width: width/1.2,
+      minHeight:height*0.070,
+      alignSelf:'center',
+      borderRadius:7,
+      fontFamily:'Roboto',
+      paddingLeft:10,
+      fontSize:16 ,
+      backgroundColor:'rgba(0, 0, 0, 0)',
+  
+    },
+      disabled:{
+        opacity:0.5,
+        backgroundColor: '#064635',
+        width: width/1.2,
+        height:60,
+        alignSelf:'center',
+        borderRadius:7 
+      }
+
   });
   
 

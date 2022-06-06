@@ -21,7 +21,7 @@ import { auth } from '../firebase';
 
 import arrow from '../assets/images/backarrow.png';
 import flag from '../assets/images/flag.png';
-import { checkIfalreadyentered, enterCompetition } from '../Database';
+import { checkIfalreadyentered, enterCompetition, updatecompetitionUsersCount } from '../Database';
 import { onSnapshot } from 'firebase/firestore';
 
     //convert seconds to date
@@ -30,7 +30,7 @@ import { onSnapshot } from 'firebase/firestore';
         return new Date(seconds*1000).toLocaleString();
         
     }
-
+    var today = new Date().getTime();
 
 
 //Get width and height of device for responsiveness
@@ -54,9 +54,13 @@ export default function Competitionenter({route, navigation}) {
 const enterComp = async() =>{
    await enterCompetition(id);
    setActive("true");
+   updatecompetitionUsersCount(id, {currentplayers:currentcomp.currentplayers+1})
+
  //navigation.navigate("Leaderboard" , currentcomp)
 
 }
+
+
 
 
 useFocusEffect(
@@ -68,9 +72,6 @@ getjoined();
 handleLikeAnimation(); 
 
 
-console.log("This is "+ active)
-
-
 return () =>
 {
 
@@ -79,6 +80,7 @@ return () =>
   },[])
   
 )
+
 
 
 const [active, setActive] = useState('');
@@ -168,26 +170,51 @@ const [active, setActive] = useState('');
             <Text style={{color:'#fff',fontSize:16,fontFamily:'Roboto',marginLeft:width*0.01}}>{currentcomp.hole}</Text>
         </View>
         <View style={{flexDirection:'row', flexShrink:1, marginTop:-20}}>
-            <Text style={styles.max1}>44</Text>
+            <Text style={styles.max1}>{parseInt(currentcomp.currentplayers)}</Text>
             <Text style={styles.max2}>/</Text>
-            <Text style={styles.max3}>{currentcomp.maxplayers}</Text>
+            <Text style={styles.max3}>{parseInt(currentcomp.maxplayers)}</Text>
         </View>
-        
 
-        <View style={{position:'absolute' , bottom:40, alignSelf:'center'}}>
-        <TouchableOpacity onPress={()=> enterComp() && handleLikeAnimation() }>
-              <View style={styles.btn}>
-              <Text style={styles.btnText}>Enter Tournament</Text>
+
+        {today > (currentcomp.date.seconds*1000)+60480000 ? (
+
+<>
+<View style={{position:'absolute' , bottom:40, alignSelf:'center'}}>
+<TouchableOpacity disabled={true}>
+<View style={styles.btn}>
+<Text style={styles.btnText}>Tournament Closed</Text>
+</View>
+</TouchableOpacity>
+</View>
+</>
+      ):(
+        today > currentcomp.date.seconds*1000  || currentcomp.currentplayers == currentcomp.maxplayers  ? (
+
+          <>
+          <View style={{position:'absolute' , bottom:40, alignSelf:'center'}}>
+          <TouchableOpacity disabled={true}>
+          <View style={styles.btn}>
+          <Text style={styles.btnText}>Entries Closed</Text>
           </View>
-            </TouchableOpacity>
-            </View>
+          </TouchableOpacity>
+          </View>
+          </>
+                ):(
+                  <>
+                          <View style={{position:'absolute' , bottom:40, alignSelf:'center'}}>
+                  <TouchableOpacity onPress={()=> enterComp() && handleLikeAnimation() }>
+                        <View style={styles.btn}>
+                        <Text style={styles.btnText}>Enter Tournament</Text>
+                    </View>
+                      </TouchableOpacity>
+                      </View>
+          
+                  </>
+                  )
+        )}
         
         </BlurView>
-     
-
-        
-
-        
+    
         </View>
         </>
          ):(

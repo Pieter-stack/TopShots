@@ -43,15 +43,13 @@ export default function Login({navigation}) {
     signInWithEmailAndPassword(auth, email, password)
     .then((userCredentials) =>{
         const user = userCredentials.user;
-        Alert.alert(user.uid);
-
         navigation.replace('Homepage');
 
 
 
     })
     .catch((error) =>{
-        Alert.alert(error.message);
+        Alert.alert('Wrong username or password.');
     })
 
   
@@ -81,8 +79,7 @@ export default function Login({navigation}) {
             value={email}
             onChangeText={onEmailChange}
             style={styles.input}
-            errorStyle={{ color: 'red' }}
-            errorMessage='Incorrect Username'
+            selectionColor={'#064635'}  
           />
           <Text style={styles.label}>Password</Text>
             <TextInput  
@@ -90,8 +87,7 @@ export default function Login({navigation}) {
               onChangeText={onPasswordChange}
               style={styles.input}
               secureTextEntry={true}
-              errorStyle={{ color: 'red' }}
-              errorMessage='Incorrect Username'
+              selectionColor={'#064635'}  
             />
       </BlurView>
     </>
@@ -107,8 +103,7 @@ export default function Login({navigation}) {
             value={email}
             onChangeText={onEmailChange}
             style={styles.input}
-            errorStyle={{ color: 'red' }}
-            errorMessage='Incorrect Username'
+            selectionColor={'#064635'}  
           />
           <Text style={styles.label}>Password</Text>
             <TextInput  
@@ -116,8 +111,7 @@ export default function Login({navigation}) {
               onChangeText={onPasswordChange}
               style={styles.input}
               secureTextEntry={true}
-              errorStyle={{ color: 'red' }}
-              errorMessage='Incorrect Username'
+              selectionColor={'#064635'}  
             />
       </View>
     </>
@@ -125,10 +119,8 @@ export default function Login({navigation}) {
 }
       </KeyboardAvoidingView>
           <View style={{position:'absolute' , bottom:20}}>
-            <TouchableOpacity onPress={handleLoginPress}>
-              <View style={styles.loginbtn}>
+            <TouchableOpacity disabled={!email || !password} onPress={handleLoginPress} style={!email || !password ? styles.disabled  : styles.loginbtn}> 
               <Text style={styles.loginbtnText}>Login</Text>
-          </View>
             </TouchableOpacity>
               <View style={{flexDirection:'row', alignSelf:'center'}}>
                 <Text style={styles.body}>Don't have an account?</Text>  
@@ -214,7 +206,16 @@ export default function Login({navigation}) {
         marginLeft:2,
         textDecorationLine: 'underline',
         fontFamily:'Roboto'  
+      },
+      disabled:{
+        opacity:0.5,
+        backgroundColor: '#064635',
+        width: width*0.84,
+        height:60,
+        alignSelf:'center',
+        borderRadius:7 
       }
+
 
   });
   

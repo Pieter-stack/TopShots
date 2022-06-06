@@ -318,9 +318,9 @@ export default function Homepage({navigation}) {
                             <View style={{flexDirection:'row'}}>
                                     <Text style={styles.divheading}>{comp.title}</Text>
                                 <View style={{flexDirection:'row'}}>
-                                    <Text style={styles.curentuser}>44</Text>
+                                    <Text style={styles.curentuser}>{parseInt(comp.currentplayers)}</Text>
                                     <Text style={styles.dash}>/</Text>
-                                    <Text style={styles.maxuser}>{comp.maxplayers}</Text>
+                                    <Text style={styles.maxuser}>{parseInt(comp.maxplayers)}</Text>
                                 </View>
                             </View>
                             <BlurView
