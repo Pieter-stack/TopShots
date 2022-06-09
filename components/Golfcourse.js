@@ -39,6 +39,8 @@ export default function Golfcourse({route, navigation}) {
  
     const [modalVisible, setModalVisible] = useState(false);
 
+
+
   //Content Render
   return (
     <View style={styles.container}>
@@ -62,7 +64,7 @@ export default function Golfcourse({route, navigation}) {
       >
         <View style={[styles.centeredView, {marginTop:Platform.OS === 'ios' ? height*0.06 : height*0.03 }]}>
           <View style={styles.modalView}>
-            <Text style={styles.modalText}>Hello World!</Text>
+            <Text style={styles.modalText}>{currentcomp.name}</Text>
             <Pressable
               style={[styles.button, styles.buttonClose]}
               onPress={() => setModalVisible(!modalVisible)}

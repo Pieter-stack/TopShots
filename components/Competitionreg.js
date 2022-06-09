@@ -115,7 +115,9 @@ export default function Competitionreg({navigation}) {
                       badge:url2,
                       image:url,
                       currentplayers:0,
-                       id: newDocRef.id
+                       id: newDocRef.id,
+                       closed:"open",
+                       usersentered:[],
                      }
                  )
 

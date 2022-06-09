@@ -22,7 +22,7 @@ import { auth, db } from '../firebase';
 import arrow from '../assets/images/backarrow.png';
 import flag from '../assets/images/flag.png';
 import { checkIfalreadyentered, enterCompetition, updatecompetitionUsersCount } from '../Database';
-import { collection, Firestore, onSnapshot, query, where } from 'firebase/firestore';
+import { arrayUnion, collection, Firestore, onSnapshot, query, where } from 'firebase/firestore';
 
     //convert seconds to date
     const convertToDate = (seconds) => {
@@ -49,12 +49,12 @@ export default function Competitionenter({route, navigation}) {
     const currentcomp = route.params;
     const id = currentcomp.id;
     const uid = auth.currentUser.uid
-
-
+    const venuelocation = currentcomp.venue
+    const titlecompetition = currentcomp.title
 const enterComp = async() =>{
-   await enterCompetition(id);
+   await enterCompetition(id, venuelocation,titlecompetition,);
    setActive("true");
-   updatecompetitionUsersCount(id, {currentplayers:comps.currentplayers+1})
+   updatecompetitionUsersCount(id, {currentplayers:comps.currentplayers+1, usersentered:arrayUnion(auth.currentUser.uid)})
 
  //navigation.navigate("Leaderboard" , currentcomp)
 
@@ -72,8 +72,7 @@ useFocusEffect(
 
 
     const unsubscribe = onSnapshot(competitionCollectionRef, (snapshot) =>{
-       snapshot.forEach((doc) =>{
-      //     
+       snapshot.forEach((doc) =>{ 
 
       let comp ={
           ...doc.data(),
@@ -81,11 +80,20 @@ useFocusEffect(
       }
 
       setComps(comp);
+
+    //   if(today > (comp?.date.seconds*1000)+60480000){
+
+    //     updatecompetitionUsersCount(id, {closed:"closed"})
+
+    // }
+
+  })
+   
   })
 
-     
-    
-  })
+
+
+
 
 
   
@@ -196,6 +204,10 @@ const [active, setActive] = useState('');
             <Text style={styles.max2}>/</Text>
             <Text style={styles.max3}>{parseInt(comps.maxplayers)}</Text>
         </View>
+
+
+
+
 
 
         {today > (comps.date.seconds*1000)+60480000 ? (

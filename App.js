@@ -3,7 +3,7 @@
 import React, {useEffect, useState } from 'react';
 import { StyleSheet, Text, View, SafeAreaView, Image, TouchableOpacity } from 'react-native';
 import AppLoading from 'expo-app-loading';
-import { NavigationContainer } from '@react-navigation/native';
+import { NavigationContainer, TabActions } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as SplashScreen from 'expo-splash-screen';
@@ -97,15 +97,15 @@ console.log(loggedIn)
     await useFonts();
   };
   
-  if (!IsReady) {
-    return (
-      <AppLoading
-        startAsync={LoadFonts}
-        onFinish={() => setIsReady(true)}
-        onError={() => {}}
-      />
-    );
-  }
+  // if (!IsReady) {
+  //   return (
+  //     <AppLoading
+  //       startAsync={LoadFonts}
+  //       onFinish={() => setIsReady(true)}
+  //       onError={() => {}}
+  //     />
+  //   );
+  // }
 
 //content Render
   return (
@@ -146,6 +146,16 @@ const styles = StyleSheet.create({
 
 });
 
+
+
+
+
+
+
+
+
+
+
 //run project anywhere
 //expo-cli start --tunnel
 
@@ -161,3 +171,6 @@ const styles = StyleSheet.create({
 
 //active classes
 //https://stackoverflow.com/questions/41224418/react-native-add-active-class-when-push-the-button
+
+//reset pw
+//https://firebase.google.com/docs/auth/web/manage-users

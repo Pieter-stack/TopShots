@@ -1,5 +1,5 @@
 import { auth, db } from "./firebase";
-import  {doc, setDoc, Timestamp, collection, getDoc, getDocs,addDoc, onSnapshot, query, where} from 'firebase/firestore';//import firestore functions
+import  {doc, setDoc, Timestamp, collection, getDoc, getDocs,addDoc, onSnapshot, query, where, orderBy} from 'firebase/firestore';//import firestore functions
 import { querystring } from '@firebase/util';
 
 export const createUserOnRegister = (user,Name, surname, handicap, username, age, gender,pfp) => {
@@ -19,13 +19,11 @@ const userData = {
     gender:gender,   
     dateCreated : Timestamp.fromDate(new Date()),
     uid:user.uid,
-    rank:'1',
-    badges:"",
+    rank:1,
+    badges:[],
     type:'user',
     profile:pfp,
     imguploaded:'0'
-    //profile img
-
 
 }
 
@@ -52,6 +50,67 @@ return setDoc(userRef, userData);
   return query(collection(db, "users"), where("uid", "==", auth.currentUser.uid));
   
 }
+
+
+
+//returns our collection reference that we want to listen for real updates
+export const getscoreforbadge = async(id) =>{
+
+ const userscore = []
+
+ const querySnapshot = await  getDocs(query(collection(db,"competitions/" + id + "/scorecard"), orderBy("finalscore", "asc")))
+
+ querySnapshot.forEach((doc) => {
+  let user = {...doc.data()}
+  userscore.push(user);
+})
+
+return userscore[0];
+  
+}
+
+
+
+
+//returns our collection reference that we want to listen for real updates
+export const getuserforbadge = async(uid) =>{
+
+  const userscore = []
+ 
+  const querySnapshot = await  getDocs(query(collection(db, "competitions"), where("uid", "==", uid)))
+ 
+  querySnapshot.forEach((doc) => {
+   let user = {...doc.data()}
+   userscore.push(user);
+ })
+ 
+ return userscore[0];
+   
+ }
+
+
+export const getAllUsers = async () => {
+
+  const users = [];
+
+//get snapshot of our users collection
+  const querySnapshot = await getDocs(collection(db, 'users'));
+
+
+//need to loop through snapshot
+  querySnapshot.forEach((doc) => {
+      let user = {...doc.data(), uid: doc.id}
+      users.push(user);
+  })
+
+return users;
+
+}
+
+
+
+
+
 
 
 
@@ -111,7 +170,7 @@ export const updatecompetitionUsersCount = (id, data) =>{
 }
 
 //enter a competition and get scorecard
-export const enterCompetition =async (id) =>{
+export const enterCompetition =async (id, venuelocation,titlecompetition) =>{
 
 
   const collectionRef = collection(db, "competitions/"+id+"/scorecard")
@@ -120,26 +179,28 @@ export const enterCompetition =async (id) =>{
   //create data
   const entercomp = {
       uid: auth.currentUser.uid,
-      hole1:'0',
-      hole2:'0',
-      hole3:'0',
-      hole4:'0',
-      hole5:'0',
-      hole6:'0',
-      hole7:'0',
-      hole8:'0',
-      hole9:'0',
-      hole10:'0',
-      hole11:'0',
-      hole12:'0',
-      hole13:'0',
-      hole14:'0',
-      hole15:'0',
-      hole16:'0',
-      hole17:'0',
-      hole18:'0',
-      currenthole:'0',
-      finalscore:'0',
+      hole1:0,
+      hole2:0,
+      hole3:0,
+      hole4:0,
+      hole5:0,
+      hole6:0,
+      hole7:0,
+      hole8:0,
+      hole9:0,
+      hole10:0,
+      hole11:0,
+      hole12:0,
+      hole13:0,
+      hole14:0,
+      hole15:0,
+      hole16:0,
+      hole17:0,
+      hole18:0,
+      currenthole:0,
+      finalscore:0,
+      venue: venuelocation,
+      title : titlecompetition
 
 }
 
