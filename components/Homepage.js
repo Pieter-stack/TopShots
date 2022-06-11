@@ -5,7 +5,7 @@ import { StatusBar,StyleSheet, Text, View, SafeAreaView, Image, TouchableOpacity
 import { Dimensions } from "react-native";
 import { BlurView } from 'expo-blur';
 import { useFocusEffect } from '@react-navigation/native'
-import { doc, onSnapshot } from 'firebase/firestore'
+import { collection, doc, onSnapshot, query, where } from 'firebase/firestore'
 
 
 //Import fonts
@@ -22,6 +22,7 @@ import test from '../assets/images/test.png';
 import testpfp from '../assets/images/testpfp.png';
 import flag from '../assets/images/flag.png';
 import { getAllCompsRealtime, getUser } from '../Database';
+import { auth, db } from '../firebase';
 
 //Get width and height of device for responsiveness
 var width = Dimensions.get('window').width;
@@ -42,6 +43,9 @@ export default function Homepage({navigation}) {
 
     //set comps
     const [comps, setComps]= useState([]);
+    const [comps2, setComps2]= useState([]);
+    const [Mycomps, setMyComps]= useState([]);
+    const [Pastcomps, setPastComps]= useState([]);
 
     //active class
     const [active, setActive] = useState('');
@@ -142,6 +146,11 @@ export default function Homepage({navigation}) {
 
 
 
+
+
+
+
+
       
 
     useFocusEffect(
@@ -150,6 +159,8 @@ export default function Homepage({navigation}) {
           
             const collectionRef = getAllCompsRealtime();
             const collectionRef2 = getUser();
+            const collectionRef3 = query(collection(db, "competitions"), where("usersentered", "array-contains", auth.currentUser.uid));
+            const collectionRef4 = query(collection(db, "competitions"), where("closed", "==","closed"));
             const unsubscribe = onSnapshot(collectionRef, (snapshot) =>{
                 let compsData = []
                  snapshot.forEach((doc) =>{
@@ -161,8 +172,7 @@ export default function Homepage({navigation}) {
                 }
                 compsData.push(comp)
             })
-    
-               
+             
                 setComps(compsData);
             })
 
@@ -180,9 +190,38 @@ export default function Homepage({navigation}) {
 
                 setUsers(user);
             })
+            })
+
+            const unsubscribe3 = onSnapshot(collectionRef3, (snapshot) =>{
+                let compsData = []
+                 snapshot.forEach((doc) =>{
+                //     
+    
+                let comp ={
+                    ...doc.data(),
+                    id: doc.id
+                }
+                compsData.push(comp)
+            })
     
                
-           
+                setMyComps(compsData);
+            })
+
+            const unsubscribe4 = onSnapshot(collectionRef4, (snapshot) =>{
+                let compsData = []
+                 snapshot.forEach((doc) =>{
+                //     
+    
+                let comp ={
+                    ...doc.data(),
+                    id: doc.id
+                }
+                compsData.push(comp)
+            })
+    
+               
+                setPastComps(compsData);
             })
 
 
@@ -194,6 +233,8 @@ export default function Homepage({navigation}) {
                 //usefull cleanup function
                 unsubscribe();
                 unsubscribe2();
+                unsubscribe3();
+                unsubscribe4();
             }
            
         },[])
@@ -204,28 +245,70 @@ export default function Homepage({navigation}) {
         //get current user data
     const [users, setUsers]= useState([]);
 
-    // useEffect(() => {
-    //   fetchUser();
-    //   }, [])
-      
-    //   const fetchUser = async () => {
-    //     const data = await getUser();
-    //     setUsers(data);
-    //     console.log(data.name);
-
-
-
-    //   }
     
+const [submitNew, setSubmitNew]= useState(true);
+const [submitMy, setSubmitMy]= useState(false);
+const [submitPast, setSubmitPast]= useState(false);
+    const onPressNew = () => {
+      setSubmitNew(true);  
+      setSubmitMy(false);
+      setSubmitPast(false);
 
 
+        
+    }
+
+    const onPressMy = () => {
+      setSubmitNew(false);  
+      setSubmitMy(true);
+      setSubmitPast(false);    
+
+        
+    }
+    const onPressPast = () => {
+      setSubmitNew(false);  
+      setSubmitMy(false);
+      setSubmitPast(true);   
+
+        
+    }
 
 
+//check if closed
 
-
-
-
-
+    const UsersCompetitions =[] //alle if statement data word hier gestoor
+    for (let i = 0; i < comps.length; i++) {
+        if(comps[i].gender == users.gender || comps[i].gender == 'Any'){//die gender werk
+            if(comps[i].rank < users.rank || comps[i].rank == 'Any'){// die ranking filter werk
+                if(comps[i].age == '20-40'){
+                    console.log('0')
+                    if(users.age > 20 && users.age < 40){
+                        if(comps[i].closed == 'open'){
+                            UsersCompetitions.push(comps[i]) 
+                        }
+                    }
+                }else if(comps[i].age == '40-65'){
+                    if(users.age > 40 && users.age < 65){
+                        if(comps[i].closed == 'open'){
+                            UsersCompetitions.push(comps[i]) 
+                        } 
+                    }
+                }else if(comps[i].age == '65+'){
+                    console.log('2')
+                    if(users.age > 65){
+                        if(comps[i].closed == 'open'){
+                            UsersCompetitions.push(comps[i]) 
+                        }
+                    }
+                }else if(comps[i].age == 'Any'){
+                    if(comps[i].closed == 'open'){
+                        UsersCompetitions.push(comps[i]) 
+                    }
+               }
+            }
+        }
+    }
+      console.log(UsersCompetitions)
 
 
 
@@ -246,7 +329,6 @@ export default function Homepage({navigation}) {
         
     }
 
-    
 
 
   //Content Render
@@ -288,28 +370,43 @@ export default function Homepage({navigation}) {
             </View>
             <View style={{flexDirection:'row', justifyContent:'space-between'}}>
                 <ScrollView horizontal={true} showsHorizontalScrollIndicator={false} contentContainerStyle={{flexDirection:'row', justifyContent:'space-between'}}>
-                    <View style={styles.btnfilter}>
-                        <Text style={styles.filtertext}>New Tournaments</Text>
+               
+               
+                <TouchableOpacity onPress={onPressNew}>
+                <View style={submitNew ? styles.btnfilteractive  : styles.btnfilter}>
+                <Text style={submitNew ? styles.filtertextactive  : styles.filtertext}>New Tournaments</Text>
                     </View>
-                    <View style={styles.btnfilter}>
-                    <Text style={styles.filtertext}>My Tournaments</Text>
+                </TouchableOpacity >
+                <TouchableOpacity onPress={onPressMy}>
+                <View style={submitMy ? styles.btnfilteractive  : styles.btnfilter}>
+                    <Text style={submitMy ? styles.filtertextactive  : styles.filtertext}>My Tournaments</Text>
                     </View>
-                    <View style={styles.btnfilter}>
-                    <Text style={styles.filtertext}>Past Tournaments</Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={onPressPast}>
+                <View style={submitPast ? styles.btnfilteractive  : styles.btnfilter}>
+                    <Text style={submitPast ? styles.filtertextactive  : styles.filtertext}>Past Tournaments</Text>
                     </View>
+                </TouchableOpacity>
+                        
+                    
+                    
+                    
+
+
+
                 </ScrollView>     
             </View>
                 <View style={{width:width, height:height*0.45, marginTop:10}}>
                     <ScrollView  contentContainerStyle={styles.scroll}>
 
 
-
-
+{submitNew == true ? (
+<>
 {active == '1' ? (
 
 <>
 
-                    {comps.map((comp, index) => (
+                    {UsersCompetitions.map((comp, index) => (
      <TouchableOpacity key={index} onPress={()=> navigation.navigate("CompEnter" , comp)} >
 
 <View style={styles.rowAlign}>
@@ -355,7 +452,7 @@ export default function Homepage({navigation}) {
 
 <>
 
-{comps.map((comp, index) => (
+{UsersCompetitions.map((comp, index) => (
 
     
      <TouchableOpacity key={index}  onPress={()=> navigation.navigate("CompEnter" , comp)} >
@@ -366,7 +463,7 @@ export default function Homepage({navigation}) {
                                 <View style={{flexDirection:'row'}}>
                                         <Text style={styles.divheadinglong}>{comp.title}</Text>
                                     <View style={{flexDirection:'row'}}>
-                                        <Text style={styles.curentuser}>44</Text>
+                                        <Text style={styles.curentuser}>{parseInt(comp.currentplayers)}</Text>
                                         <Text style={styles.dash}>/</Text>
                                         <Text style={styles.maxuser}>{comp.maxplayers}</Text>
                                     </View>
@@ -394,6 +491,199 @@ export default function Homepage({navigation}) {
 ))}
 </>
 )}
+</>  
+):(submitMy == true ? (
+<>
+{active == '1' ? (
+
+<>
+
+                    {Mycomps.map((comp, index) => (
+     <TouchableOpacity key={index} onPress={()=> navigation.navigate("CompEnter" , comp)} >
+
+<View style={styles.rowAlign}>
+                            <Image  resizeMode={"cover"} source={{uri: comp.image}} style={styles.divImg}/>
+                        <View style={styles.opacitydiv}>
+                            <View style={{flexDirection:'row'}}>
+                                    <Text style={styles.divheading}>{comp.title}</Text>
+                                <View style={{flexDirection:'row'}}>
+                                    <Text style={styles.curentuser}>{parseInt(comp.currentplayers)}</Text>
+                                    <Text style={styles.dash}>/</Text>
+                                    <Text style={styles.maxuser}>{parseInt(comp.maxplayers)}</Text>
+                                </View>
+                            </View>
+                            <BlurView
+                                    style={{width:'100%',height:'50%', position:'absolute', zIndex:2, borderRadius:15, overflow:'hidden', bottom:0}}
+                                    tint="light"
+                                    intensity={50}
+                                    reducedTransparencyFallbackColor="white"
+                            >
+                                <View style={{flexDirection:'row', flexShrink:1}}>
+                                    <Text style={styles.datecon}>{convertToDate(comp.date.seconds)}</Text>
+                                    
+                                    
+                   
+                                </View>
+                                
+                                <View style={{flexDirection:'row', flexWrap:'wrap'}}>
+                                <Image source={flag} style={styles.flagicon}></Image>
+                                    <Text style={styles.amountholes}>{comp.hole}</Text>
+                                    <Text style={styles.dashcon2}>|</Text>
+                                    <Text style={styles.golfcoursecon}>{comp.venue}</Text>
+                                </View>
+                            </BlurView>
+                        </View>  
+                </View>
+
+
+</TouchableOpacity>
+))}
+</>
+
+):(
+
+<>
+
+{Mycomps.map((comp, index) => (
+
+    
+     <TouchableOpacity key={index}  onPress={()=> navigation.navigate("CompEnter" , comp)} >
+
+                        <View style={styles.columnAlign}>
+                            <Image  resizeMode={"cover"} source={{uri: comp.image}} style={styles.divImg}/>
+                            <View style={styles.opacitydiv}>
+                                <View style={{flexDirection:'row'}}>
+                                        <Text style={styles.divheadinglong}>{comp.title}</Text>
+                                    <View style={{flexDirection:'row'}}>
+                                        <Text style={styles.curentuser}>{parseInt(comp.currentplayers)}</Text>
+                                        <Text style={styles.dash}>/</Text>
+                                        <Text style={styles.maxuser}>{comp.maxplayers}</Text>
+                                    </View>
+                                </View>
+                                <BlurView
+                                    style={{width:'100%',height:'50%', position:'absolute', zIndex:2, borderRadius:15, overflow:'hidden', bottom:0}}
+                                    tint="light"
+                                    intensity={50}
+                                    reducedTransparencyFallbackColor="white"
+                            >
+                                <View style={{flexDirection:'row'}}>
+                                    <Text style={styles.dateconcolumn}>{convertToDate(comp.date.seconds)}</Text>
+                                </View>
+                                <View style={{flexDirection:'row', flexWrap:'wrap'}}>
+                                <Image source={flag} style={styles.flagicon}></Image>
+                                    <Text style={styles.amountholes}>{comp.hole}</Text>
+                                    <Text style={styles.dashcon2}>|</Text>
+                                    <Text style={styles.golfcoursecon}>{comp.venue}</Text>
+                                </View>
+                            </BlurView>
+                            </View>
+                            </View>
+                     
+                            </TouchableOpacity>
+))}
+</>
+)}
+</>
+):(submitPast == true ? (  
+<>
+{active == '1' ? (
+
+<>
+
+                    {Pastcomps.map((comp, index) => (
+     <TouchableOpacity key={index} onPress={()=> navigation.navigate("CompEnter" , comp)} >
+
+<View style={styles.rowAlign}>
+                            <Image  resizeMode={"cover"} source={{uri: comp.image}} style={styles.divImg}/>
+                        <View style={styles.opacitydiv}>
+                            <View style={{flexDirection:'row'}}>
+                                    <Text style={styles.divheading}>{comp.title}</Text>
+                                <View style={{flexDirection:'row'}}>
+                                    <Text style={styles.curentuser}>{parseInt(comp.currentplayers)}</Text>
+                                    <Text style={styles.dash}>/</Text>
+                                    <Text style={styles.maxuser}>{parseInt(comp.maxplayers)}</Text>
+                                </View>
+                            </View>
+                            <BlurView
+                                    style={{width:'100%',height:'50%', position:'absolute', zIndex:2, borderRadius:15, overflow:'hidden', bottom:0}}
+                                    tint="light"
+                                    intensity={50}
+                                    reducedTransparencyFallbackColor="white"
+                            >
+                                <View style={{flexDirection:'row', flexShrink:1}}>
+                                    <Text style={styles.datecon}>{convertToDate(comp.date.seconds)}</Text>
+                                    
+                                    
+                   
+                                </View>
+                                
+                                <View style={{flexDirection:'row', flexWrap:'wrap'}}>
+                                <Image source={flag} style={styles.flagicon}></Image>
+                                    <Text style={styles.amountholes}>{comp.hole}</Text>
+                                    <Text style={styles.dashcon2}>|</Text>
+                                    <Text style={styles.golfcoursecon}>{comp.venue}</Text>
+                                </View>
+                            </BlurView>
+                        </View>  
+                </View>
+
+
+</TouchableOpacity>
+))}
+</>
+
+):(
+
+<>
+
+{Pastcomps.map((comp, index) => (
+
+    
+     <TouchableOpacity key={index}  onPress={()=> navigation.navigate("CompEnter" , comp)} >
+
+                        <View style={styles.columnAlign}>
+                            <Image  resizeMode={"cover"} source={{uri: comp.image}} style={styles.divImg}/>
+                            <View style={styles.opacitydiv}>
+                                <View style={{flexDirection:'row'}}>
+                                        <Text style={styles.divheadinglong}>{comp.title}</Text>
+                                    <View style={{flexDirection:'row'}}>
+                                        <Text style={styles.curentuser}>{parseInt(comp.currentplayers)}</Text>
+                                        <Text style={styles.dash}>/</Text>
+                                        <Text style={styles.maxuser}>{comp.maxplayers}</Text>
+                                    </View>
+                                </View>
+                                <BlurView
+                                    style={{width:'100%',height:'50%', position:'absolute', zIndex:2, borderRadius:15, overflow:'hidden', bottom:0}}
+                                    tint="light"
+                                    intensity={50}
+                                    reducedTransparencyFallbackColor="white"
+                            >
+                                <View style={{flexDirection:'row'}}>
+                                    <Text style={styles.dateconcolumn}>{convertToDate(comp.date.seconds)}</Text>
+                                </View>
+                                <View style={{flexDirection:'row', flexWrap:'wrap'}}>
+                                <Image source={flag} style={styles.flagicon}></Image>
+                                    <Text style={styles.amountholes}>{comp.hole}</Text>
+                                    <Text style={styles.dashcon2}>|</Text>
+                                    <Text style={styles.golfcoursecon}>{comp.venue}</Text>
+                                </View>
+                            </BlurView>
+                            </View>
+                            </View>
+                     
+                            </TouchableOpacity>
+))}
+</>
+)}
+</>
+):(
+<>
+
+</>
+)))}
+
+
+
                 </ScrollView> 
             </View>
             <TouchableOpacity onPress={() => navigation.push('CompReg')} style={{position:'absolute', bottom:20, marginLeft:width*0.49, zIndex:10}}>
@@ -457,7 +747,7 @@ color:'#fff',
 fontFamily:'Roboto',
 fontWeight:'bold',
 fontSize:14,
-marginTop:10
+marginTop:11
 },
 scroll:{
     width:width,
@@ -590,7 +880,33 @@ borderRadius:15,
 alignSelf:'center',
 position:'absolute',
 bottom:20
-}
+},
+btnfilteractive:{
+width:width*0.40,
+height:40,
+borderColor:'#064635',
+borderWidth:3,
+borderRadius:10,
+marginLeft:10,
+marginRight:10,
+},
+filtertextactive:{
+alignSelf:'center',
+color:'#064635',
+fontFamily:'Roboto',
+fontWeight:'bold',
+fontSize:14,
+marginTop:8
+},
 
 
 });
+
+
+
+
+
+
+
+
+

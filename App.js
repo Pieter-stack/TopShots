@@ -1,12 +1,12 @@
 
 //Import Components
-import React, {useEffect, useState } from 'react';
-import { StyleSheet, Text, View, SafeAreaView, Image, TouchableOpacity } from 'react-native';
+import React, {useEffect, useState} from 'react';
 import AppLoading from 'expo-app-loading';
 import { NavigationContainer, TabActions } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as SplashScreen from 'expo-splash-screen';
+
 
 
 //splashscreen timer
@@ -141,10 +141,7 @@ isAppFirstLaunched !=null && (// if opened for first time render startpage else 
   );
 
 }
-//Styling
-const styles = StyleSheet.create({
 
-});
 
 
 
@@ -174,3 +171,6 @@ const styles = StyleSheet.create({
 
 //reset pw
 //https://firebase.google.com/docs/auth/web/manage-users
+
+//bottom drawer video working
+//https://www.youtube.com/watch?v=KvRqsRwpwhY

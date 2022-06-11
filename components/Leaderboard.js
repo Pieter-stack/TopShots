@@ -1,10 +1,10 @@
 //Import Components
-import React, { useState, useEffect } from "react";
-import {StatusBar,StyleSheet,Text,View,SafeAreaView,Image,TouchableOpacity,ScrollView,TextInput,Button,} from "react-native";
 import { Dimensions } from "react-native";
-import { BlurView } from "expo-blur";
+import React, { useState, useEffect } from "react";
+import { StatusBar, StyleSheet, Text, View, Image, TouchableOpacity, ScrollView, TextInput, Button, } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
-import {collection,doc,onSnapshot,query,orderBy, where, arrayUnion,
+import {
+  collection, onSnapshot, query, orderBy, where, arrayUnion, FieldValue, doc, updateDoc
 } from "firebase/firestore";
 
 //Import fonts
@@ -16,7 +16,7 @@ import { auth, db } from "../firebase";
 //Import images
 
 import arrow from "../assets/images/blackarrow.png";
-import {updatecompetitionUsersCount, updateProfile } from "../Database";
+import { updatecompetitionUsersCount, updateProfile } from "../Database";
 
 //Get width and height of device for responsiveness
 var width = Dimensions.get("window").width;
@@ -30,152 +30,118 @@ Font.loadAsync({
 
 //Content
 export default function Leaderboard({ route, navigation }) {
-  const currentcomp = route.params;
-  var id = currentcomp.id;
-  var today = new Date().getTime();
-  var venue = currentcomp.venue;
-
-
+  const [currentComp, setCurrentComp] = useState(route.params); // all the users info is stored
   const [scoreCards, setscoreCards] = useState([]); // all the users info is stored
+  const [getUsers, setUsers] = useState([]); // all the users info is stored
+  const id = currentComp.id;
 
-  const [comps, setcomps] = useState([]); // all the users info is stored
+  useEffect(() => {
+    setCurrentComp(route.params)
+  }, [route.params])
+
+
   useFocusEffect(
     React.useCallback(() => {
-      const scorecardCollectionRef = collection(db,"competitions/" + id + "/scorecard");
-      const competitionCollectionRef =  query(collection(db, "competitions"), where('id', "==",id));
+      const scorecardCollectionRef = collection(db, "competitions/" + id + "/scorecard");
       const usersCollectionRef = collection(db, "users");
-  
+      const competitionCollectionRef =  query(collection(db, "competitions"), where('id', "==",id));
+
       const unsubscribe = onSnapshot(usersCollectionRef, (snapshot) => {
         let allusers = {};
-         
+
         snapshot.forEach((doc) => {
           allusers[doc.id] = doc.data();
         });
-  
+
         onSnapshot(
           query(scorecardCollectionRef, orderBy("finalscore", "asc")),
           (snapshot) => {
             let scores = [];
-  
+            let usersdata = [];
             snapshot.forEach((doc) => {
               scores.push({
                 ...allusers[doc.data().uid],
                 ...doc.data(),
+                 scorecardid: doc.id
               });
             });
 
-  
-
-  ///want to use scores[0].uid
-  setscoreCards(scores);
-  console.log(scores)
-
-            
-          // onSnapshot(
+            ///want to use scores[0].uid
+            setscoreCards(scores);
+            for (let i = 0; i < scores.length; i++) {
+              usersdata.push(scores[i])
               
-      //   query(competitionCollectionRef),
-      //   (snapshot) => {
-      //     snapshot.forEach((doc) =>{
-      //       //     
-      
-      //       let comp ={
-      //           ...doc.data(),
-      //           id: doc.id
-      //       }
-            
-      
-      //       setcomps(comp)
-         
-      //       if(today > (comp?.date.seconds*1000)+60480000){
-      //         if(comp?.closed == 'open'){
-      //           updatecompetitionUsersCount(id, {closed:"closed"})
-      //           updateProfile(scores[0].uid,{rank:scores[0].rank+1,badges:arrayUnion(comp.badge)})
-      //           updateProfile(scores[1].uid,{rank:scores[1].rank+1})
-      //           updateProfile(scores[2].uid,{rank:scores[2].rank+1})
-      //         }
-      //     }
+            }
+        
+            onSnapshot(
+              query(competitionCollectionRef),
+              (snapshot) => {
+                let comp = [];
     
-      //   })
-      //   }
-      // );
+                snapshot.forEach((doc) => {
+                  comp.push({
+                    ...doc.data(),
+                  });
+                });
+    
+                const today = new Date().getTime();
+                const compEndDate = (comp[0].date?.seconds*1000) + 60480000;
+
+
+                   if (today > compEndDate && comp[0].closed === "open") {
+                    for (let i = 0; i < usersdata.length; i++) {
+                      if(usersdata[i].finalscore == 0){
+                        const scorecardid = usersdata[i].scorecardid;
+                        //console.log(scorecardid)
+                
+                        const colRef= doc(db, 'competitions',id,'scorecard',scorecardid);
+                        return updateDoc(colRef, {finalscore:300}, { merge: true });
+                      }
+                      
+                    } 
+
+                  setCurrentComp({
+                    ...currentComp,
+                    closed: "closed",
+                  });
+            
+                  updatecompetitionUsersCount(id, { closed: "closed" })
+                  updateProfile(scores[0].uid, {
+                    rank: scores[0].rank + 1,
+                    badges: arrayUnion(currentComp.badge)
+                  })
+                 updateProfile(scores[1].uid, { rank: scores[1].rank + 1 })
+                //  updateProfile(scores[2].uid, { rank: scores[2].rank + 1 })
+                }
+
+              }
+            );
 
 
           }
         );
-  
-  
-  
-        
-  
-  
-  
       });
 
-  
 
 
 
-      // onSnapshot(
-              
-      //   query(competitionCollectionRef),
-      //   (snapshot) => {
-      //     snapshot.forEach((doc) =>{
-      //       //     
-      
-      //       let comp ={
-      //           ...doc.data(),
-      //           id: doc.id
-      //       }
-            
-      
-      //       setcomps(comp)
-         
-      //       if(today > (comp?.date.seconds*1000)+60480000){
-      //         if(comp?.closed == 'open'){
-      //           updatecompetitionUsersCount(id, {closed:"closed"})
-      //           updateProfile(scores[0].uid,{rank:scores[0].rank+1,badges:arrayUnion(comp.badge)})
-      //           updateProfile(scores[1].uid,{rank:scores[1].rank+1})
-      //           updateProfile(scores[2].uid,{rank:scores[2].rank+1})
-      //         }
-      //     }
-    
-      //   })
-      //   }
-      // );
-  
       return () => {
         //do something when screen is unfocused
         //usefull cleanup function
         unsubscribe();
+        
       };
     }, [])
   );
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+  const handleOnNavigate = (scorecard) => {
+    navigation.navigate("Golfcourse", {
+      compitation: currentComp,
+      score: scorecard
+    })
+  }
 
   return (
     <View style={styles.container}>
@@ -183,345 +149,395 @@ export default function Leaderboard({ route, navigation }) {
       <TouchableOpacity style={styles.back} onPress={() => navigation.navigate("Homepage")}>
         <Image source={arrow} style={{ marginTop: 11, alignSelf: "center" }} />
       </TouchableOpacity>
-      <Text style={styles.heading}>{currentcomp.title}</Text>
-      <Text style={styles.venuetitle}>{currentcomp.venue}</Text>
+      <Text style={styles.heading}>{currentComp.title}</Text>
+      <Text style={styles.venuetitle}>{currentComp.venue}</Text>
       <Text style={styles.leaderboardheading}>Leaderboard</Text>
       <View style={{ width, height: height * 0.4 }}>
         {scoreCards[0] && (
-          <View style={{width: width * 0.3,height: width * 0.3,borderColor: "#FFD940",borderWidth: 3,borderRadius: 100,alignSelf: "center",marginTop: height * 0.02,}}>
-            <View style={{width: width * 0.268,height: width * 0.268,borderRadius: 100,alignSelf: "center",marginVertical: height * 0.0035,}}>
-              <Image resizeMode={"cover"} source={{ uri: scoreCards[0]?.profile }} style={{width: width * 0.268,height: width * 0.268,borderRadius: 100,alignSelf: "center",}}/>
-              <View style={{width: width * 0.08,height: width * 0.08,backgroundColor: "#FFD940",borderRadius: 100,alignSelf: "flex-end",marginVertical: 4,marginRight: -10,justifyContent: "center",marginTop: -width * 0.268,}}>
+          <View style={{ width: width * 0.3, height: width * 0.3, borderColor: "#FFD940", borderWidth: 3, borderRadius: 100, alignSelf: "center", marginTop: height * 0.02, }}>
+            <View style={{ width: width * 0.268, height: width * 0.268, borderRadius: 100, alignSelf: "center", marginVertical: height * 0.0035, }}>
+              <Image resizeMode={"cover"} source={{ uri: scoreCards[0]?.profile }} style={{ width: width * 0.268, height: width * 0.268, borderRadius: 100, alignSelf: "center", }} />
+              <View style={{ width: width * 0.08, height: width * 0.08, backgroundColor: "#FFD940", borderRadius: 100, alignSelf: "flex-end", marginVertical: 4, marginRight: -10, justifyContent: "center", marginTop: -width * 0.268, }}>
                 <Text style={{ fontSize: 16, textAlign: "center" }}> 1<Text style={{ fontSize: 12 }}>st</Text></Text>
               </View>
             </View>
           </View>
         )}
         {scoreCards[1] && (
-          <View style={{width: width * 0.25,height: width * 0.25,borderColor: "#FFD940",borderWidth: 3,borderRadius: 100,alignSelf: "flex-start",marginTop: -height * 0.02,marginLeft: 20,}}>
-            <View style={{width: width * 0.216,height: width * 0.216,borderRadius: 100,alignSelf: "center",marginVertical: height * 0.0035,}}>
-              <Image resizeMode={"cover"} source={{ uri: scoreCards[1]?.profile }} style={{width: width * 0.216,height: width * 0.216,borderRadius: 100,alignSelf: "center",}} />
-              <View style={{width: width * 0.07,height: width * 0.07,backgroundColor: "#FFD940",borderRadius: 100,alignSelf: "flex-end",marginVertical: 4,marginRight: -10,justifyContent: "center",marginTop: -width * 0.216,}}>
+          <View style={{ width: width * 0.25, height: width * 0.25, borderColor: "#FFD940", borderWidth: 3, borderRadius: 100, alignSelf: "flex-start", marginTop: -height * 0.02, marginLeft: 20, }}>
+            <View style={{ width: width * 0.216, height: width * 0.216, borderRadius: 100, alignSelf: "center", marginVertical: height * 0.0035, }}>
+              <Image resizeMode={"cover"} source={{ uri: scoreCards[1]?.profile }} style={{ width: width * 0.216, height: width * 0.216, borderRadius: 100, alignSelf: "center", }} />
+              <View style={{ width: width * 0.07, height: width * 0.07, backgroundColor: "#FFD940", borderRadius: 100, alignSelf: "flex-end", marginVertical: 4, marginRight: -10, justifyContent: "center", marginTop: -width * 0.216, }}>
                 <Text style={{ fontSize: 12, textAlign: "center" }}>2<Text style={{ fontSize: 8 }}>nd</Text></Text>
               </View>
             </View>
           </View>
         )}
         {scoreCards[2] && (
-          <View style={{width: width * 0.25,height: width * 0.25,borderColor: "#FFD940",borderWidth: 3,borderRadius: 100,alignSelf: "flex-end",marginTop: -width * 0.25,marginRight: 20,}}>
-            <View style={{width: width * 0.216,height: width * 0.216,borderRadius: 100,alignSelf: "center",marginVertical: height * 0.0035,}}>
-              <Image resizeMode={"cover"} source={{ uri: scoreCards[2]?.profile }} style={{width: width * 0.216,height: width * 0.216,borderRadius: 100,alignSelf: "center",}}/>
-              <View style={{width: width * 0.07,height: width * 0.07,backgroundColor: "#FFD940",borderRadius: 100,alignSelf: "flex-end",marginVertical: 4,marginRight: -10,justifyContent: "center",marginTop: -width * 0.216,}}>
+          <View style={{ width: width * 0.25, height: width * 0.25, borderColor: "#FFD940", borderWidth: 3, borderRadius: 100, alignSelf: "flex-end", marginTop: -width * 0.25, marginRight: 20, }}>
+            <View style={{ width: width * 0.216, height: width * 0.216, borderRadius: 100, alignSelf: "center", marginVertical: height * 0.0035, }}>
+              <Image resizeMode={"cover"} source={{ uri: scoreCards[2]?.profile }} style={{ width: width * 0.216, height: width * 0.216, borderRadius: 100, alignSelf: "center", }} />
+              <View style={{ width: width * 0.07, height: width * 0.07, backgroundColor: "#FFD940", borderRadius: 100, alignSelf: "flex-end", marginVertical: 4, marginRight: -10, justifyContent: "center", marginTop: -width * 0.216, }}>
                 <Text style={{ fontSize: 12, textAlign: "center" }}>3<Text style={{ fontSize: 8 }}>rd</Text></Text>
               </View>
             </View>
           </View>
         )}
 
+        {auth.currentUser.uid === scoreCards[0]?.uid ? (
+          currentComp.closed === 'closed' ? (
+            <>
+              {scoreCards[0] && (
+                <View style={{ alignSelf: "center", alignItems: "center", width: 140, position: "absolute", marginTop: width * 0.36, }}>
+                  <Text style={{ fontSize: 12, textAlign: "center", alignSelf: "center" }}> {scoreCards[0]?.name} </Text>
+                  <View style={{ width: width * 0.15, height: height * 0.03, borderRadius: 100, borderColor: "#68BF7B", borderWidth: 2, marginTop: 10, justifyContent: "center", }}>
+                    <TouchableOpacity onPress={() => handleOnNavigate(scoreCards[0])}>
+                      <Text style={{ fontSize: 12, textAlign: "center" }}>{scoreCards[0]?.finalscore} </Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              )}
+            </>
+          ) : (
 
+            scoreCards[0]?.hole1 === 0 ? (
+              <>
+                {scoreCards[0] && (
+                  <View style={{ alignSelf: "center", alignItems: "center", width: 140, position: "absolute", marginTop: width * 0.36, }}>
+                    <Text style={{ fontSize: 12, textAlign: "center", alignSelf: "center" }}> {scoreCards[0]?.name} </Text>
+                    <View style={{ width: width * 0.15, height: height * 0.03, borderRadius: 100, borderColor: "#68BF7B", borderWidth: 2, marginTop: 10, justifyContent: "center", }}>
+                      <TouchableOpacity onPress={() => handleOnNavigate(scoreCards[0])}>
+                        <Text style={{ fontSize: 12, textAlign: "center" }}>Start</Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                )}
 
+              </>
+            ) : (
+              scoreCards[0]?.finalscore === 0 ? (
+                <>
+                  {scoreCards[0] && (
+                    <View style={{ alignSelf: "center", alignItems: "center", width: 140, position: "absolute", marginTop: width * 0.36, }}>
+                      <Text style={{ fontSize: 12, textAlign: "center", alignSelf: "center" }}> {scoreCards[0]?.name} </Text>
+                      <View style={{ width: width * 0.15, height: height * 0.03, borderRadius: 100, borderColor: "#68BF7B", borderWidth: 2, marginTop: 10, justifyContent: "center", }}>
+                        <TouchableOpacity onPress={() => handleOnNavigate(scoreCards[0])}>                          <Text style={{ fontSize: 12, textAlign: "center" }}>Continue</Text>
+                        </TouchableOpacity>
+                      </View>
+                    </View>
+                  )}
 
-{auth.currentUser.uid == scoreCards[0]?.uid ? (
+                </>
+              ) : (
+                <>
+                  {scoreCards[0] && (
+                    <View style={{ alignSelf: "center", alignItems: "center", width: 140, position: "absolute", marginTop: width * 0.36, }}>
+                      <Text style={{ fontSize: 12, textAlign: "center", alignSelf: "center" }}> {scoreCards[0]?.name} </Text>
+                      <View style={{ width: width * 0.15, height: height * 0.03, borderRadius: 100, borderColor: "#68BF7B", borderWidth: 2, marginTop: 10, justifyContent: "center", }}>
+                        <Text style={{ fontSize: 12, textAlign: "center" }}> {scoreCards[0]?.finalscore} </Text>
+                      </View>
+                    </View>
+                  )}
+                </>
 
-
-
-comps.closed == 'closed' ? (
-  <>
-        {scoreCards[0] && (
-          <View style={{alignSelf: "center",alignItems: "center",width: 140,position: "absolute",marginTop: width * 0.36,}}>
-            <Text style={{ fontSize: 12, textAlign: "center", alignSelf: "center" }}> {scoreCards[0]?.name} </Text>
-            <View style={{width: width * 0.15,height: height * 0.03,borderRadius: 100,borderColor: "#68BF7B",borderWidth: 2,marginTop: 10,justifyContent: "center",}}>
-            <TouchableOpacity onPress={() => navigation.navigate("Golfcourse",scoreCards[0])}>
-                  <Text style={{ fontSize: 12, textAlign: "center" }}>{scoreCards[0]?.finalscore} </Text>
-                </TouchableOpacity>
-            </View>
-          </View>
+              )
+            )
+          )
+        ) : (
+          <>
+            {scoreCards[0] && (
+              <View style={{ alignSelf: "center", alignItems: "center", width: 140, position: "absolute", marginTop: width * 0.36, }}>
+                <Text style={{ fontSize: 12, textAlign: "center", alignSelf: "center" }}> {scoreCards[0]?.name} </Text>
+                <View style={{ width: width * 0.15, height: height * 0.03, borderRadius: 100, borderColor: "#68BF7B", borderWidth: 2, marginTop: 10, justifyContent: "center", }}>
+                  <Text style={{ fontSize: 12, textAlign: "center" }}> {scoreCards[0]?.finalscore} </Text>
+                </View>
+              </View>
+            )}
+          </>
         )}
 
-  </>
-):(
+        {auth.currentUser.uid === scoreCards[1]?.uid ? (
+          currentComp.closed === 'closed' ? (
+            <>
+              {scoreCards[1] && (
+                <View style={{ alignSelf: "flex-start", alignItems: "center", width: 140, position: "absolute", marginTop: width * 0.56, }}>
+                  <Text style={{ fontSize: 12, textAlign: "center" }}> {scoreCards[1]?.name} </Text>
+                  <View style={{ width: width * 0.15, height: height * 0.03, borderRadius: 100, borderColor: "#68BF7B", borderWidth: 2, marginTop: 10, justifyContent: "center", }}>
+                    <TouchableOpacity onPress={() => handleOnNavigate(scoreCards[1])}>
+                      <Text style={{ fontSize: 12, textAlign: "center" }}>{scoreCards[1]?.finalscore} </Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              )}
 
-scoreCards[0]?.hole1 == 0 ? (
-  <>
-        {scoreCards[0] && (
-          <View style={{alignSelf: "center",alignItems: "center",width: 140,position: "absolute",marginTop: width * 0.36,}}>
-            <Text style={{ fontSize: 12, textAlign: "center", alignSelf: "center" }}> {scoreCards[0]?.name} </Text>
-            <View style={{width: width * 0.15,height: height * 0.03,borderRadius: 100,borderColor: "#68BF7B",borderWidth: 2,marginTop: 10,justifyContent: "center",}}>
-            <TouchableOpacity onPress={() => navigation.navigate("Golfcourse",scoreCards[0])}>
-                  <Text style={{ fontSize: 12, textAlign: "center" }}>Start</Text>
-                </TouchableOpacity>
-            </View>
-          </View>
-        )}
+            </>
+          ) : (
+            scoreCards[1]?.hole1 === 0 ? (
+              <>
+                {scoreCards[1] && (
+                  <View style={{ alignSelf: "flex-start", alignItems: "center", width: 140, position: "absolute", marginTop: width * 0.56, }}>
+                    <Text style={{ fontSize: 12, textAlign: "center" }}> {scoreCards[1]?.name} </Text>
+                    <View style={{ width: width * 0.15, height: height * 0.03, borderRadius: 100, borderColor: "#68BF7B", borderWidth: 2, marginTop: 10, justifyContent: "center", }}>
+                      <TouchableOpacity onPress={() => handleOnNavigate(scoreCards[1])}>
+                        <Text style={{ fontSize: 12, textAlign: "center" }}>Start</Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                )}
 
-  </>
-):(
-  scoreCards[0]?.finalscore == 0 ? (
-  <>
-        {scoreCards[0] && (
-          <View style={{alignSelf: "center",alignItems: "center",width: 140,position: "absolute",marginTop: width * 0.36,}}>
-            <Text style={{ fontSize: 12, textAlign: "center", alignSelf: "center" }}> {scoreCards[0]?.name} </Text>
-            <View style={{width: width * 0.15,height: height * 0.03,borderRadius: 100,borderColor: "#68BF7B",borderWidth: 2,marginTop: 10,justifyContent: "center",}}>
-            <TouchableOpacity onPress={() => navigation.navigate("Golfcourse",scoreCards[0])}>
-                  <Text style={{ fontSize: 12, textAlign: "center" }}>Continue</Text>
-                </TouchableOpacity>
-            </View>
-          </View>
-        )}
+              </>
+            ) : (
+              scoreCards[1]?.finalscore === 0 ? (
+                <>
+                  {scoreCards[1] && (
+                    <View style={{ alignSelf: "flex-start", alignItems: "center", width: 140, position: "absolute", marginTop: width * 0.56, }}>
+                      <Text style={{ fontSize: 12, textAlign: "center" }}> {scoreCards[1]?.name} </Text>
+                      <View style={{ width: width * 0.15, height: height * 0.03, borderRadius: 100, borderColor: "#68BF7B", borderWidth: 2, marginTop: 10, justifyContent: "center", }}>
+                        <TouchableOpacity onPress={() => handleOnNavigate(scoreCards[1])}>
+                          <Text style={{ fontSize: 12, textAlign: "center" }}>Continue</Text>
+                        </TouchableOpacity>
+                      </View>
+                    </View>
+                  )}
 
-  </>
-):(
-  <>
-        {scoreCards[0] && (
-          <View style={{alignSelf: "center",alignItems: "center",width: 140,position: "absolute",marginTop: width * 0.36,}}>
-            <Text style={{ fontSize: 12, textAlign: "center", alignSelf: "center" }}> {scoreCards[0]?.name} </Text>
-            <View style={{width: width * 0.15,height: height * 0.03,borderRadius: 100,borderColor: "#68BF7B",borderWidth: 2,marginTop: 10,justifyContent: "center",}}>
-              <Text style={{ fontSize: 12, textAlign: "center" }}> {scoreCards[0]?.finalscore} </Text>
-            </View>
-          </View>
-        )}
-  </>
-   
-  )
-  )
-)
-      ):(
-        <>
-        {scoreCards[0] && (
-          <View style={{alignSelf: "center",alignItems: "center",width: 140,position: "absolute",marginTop: width * 0.36,}}>
-            <Text style={{ fontSize: 12, textAlign: "center", alignSelf: "center" }}> {scoreCards[0]?.name} </Text>
-            <View style={{width: width * 0.15,height: height * 0.03,borderRadius: 100,borderColor: "#68BF7B",borderWidth: 2,marginTop: 10,justifyContent: "center",}}>
-              <Text style={{ fontSize: 12, textAlign: "center" }}> {scoreCards[0]?.finalscore} </Text>
-            </View>
-          </View>
-        )}
-        </>
-        )}
+                </>
+              ) : (
+                <>
+                  {scoreCards[1] && (
+                    <View style={{ alignSelf: "flex-start", alignItems: "center", width: 140, position: "absolute", marginTop: width * 0.56, }}>
+                      <Text style={{ fontSize: 12, textAlign: "center" }}> {scoreCards[1]?.name} </Text>
+                      <View style={{ width: width * 0.15, height: height * 0.03, borderRadius: 100, borderColor: "#68BF7B", borderWidth: 2, marginTop: 10, justifyContent: "center", }}>
+                        <Text style={{ fontSize: 12, textAlign: "center" }}> {scoreCards[1]?.finalscore} </Text>
+                      </View>
+                    </View>
+                  )}
+                </>
+              )
+            )
+          )
 
-
-
-     
-
-{auth.currentUser.uid == scoreCards[1]?.uid ? (
-
-comps.closed == 'closed' ? (
-  <>
-        {scoreCards[1] && (
-          <View style={{alignSelf: "flex-start",alignItems: "center",width: 140,position: "absolute",marginTop: width * 0.56,}}>
-            <Text style={{ fontSize: 12, textAlign: "center" }}> {scoreCards[1]?.name} </Text>
-            <View style={{width: width * 0.15,height: height * 0.03,borderRadius: 100,borderColor: "#68BF7B",borderWidth: 2,marginTop: 10,justifyContent: "center",}}>
-            <TouchableOpacity onPress={() => navigation.navigate("Golfcourse")}>
-                  <Text style={{ fontSize: 12, textAlign: "center" }}>{scoreCards[1]?.finalscore} </Text>
-                </TouchableOpacity>
-            </View>
-          </View>
-        )}
-
-  </>
-):(
-scoreCards[1]?.hole1 == 0 ? (
-  <>
-        {scoreCards[1] && (
-          <View style={{alignSelf: "flex-start",alignItems: "center",width: 140,position: "absolute",marginTop: width * 0.56,}}>
-            <Text style={{ fontSize: 12, textAlign: "center" }}> {scoreCards[1]?.name} </Text>
-            <View style={{width: width * 0.15,height: height * 0.03,borderRadius: 100,borderColor: "#68BF7B",borderWidth: 2,marginTop: 10,justifyContent: "center",}}>
-            <TouchableOpacity onPress={() => navigation.navigate("Golfcourse")}>
-                  <Text style={{ fontSize: 12, textAlign: "center" }}>Start</Text>
-                </TouchableOpacity>
-            </View>
-          </View>
-        )}
-
-  </>
-):(
-  scoreCards[1]?.finalscore == 0 ? (
-  <>
-        {scoreCards[1] && (
-          <View style={{alignSelf: "flex-start",alignItems: "center",width: 140,position: "absolute",marginTop: width * 0.56,}}>
-            <Text style={{ fontSize: 12, textAlign: "center" }}> {scoreCards[1]?.name} </Text>
-            <View style={{width: width * 0.15,height: height * 0.03,borderRadius: 100,borderColor: "#68BF7B",borderWidth: 2,marginTop: 10,justifyContent: "center",}}>
-            <TouchableOpacity onPress={() => navigation.navigate("Golfcourse")}>
-                  <Text style={{ fontSize: 12, textAlign: "center" }}>Continue</Text>
-                </TouchableOpacity>
-            </View>
-          </View>
-        )}
-
-  </>
-):(
-  <>
-        {scoreCards[1] && (
-          <View style={{alignSelf: "flex-start",alignItems: "center",width: 140,position: "absolute",marginTop: width * 0.56,}}>
-            <Text style={{ fontSize: 12, textAlign: "center" }}> {scoreCards[1]?.name} </Text>
-            <View style={{width: width * 0.15,height: height * 0.03,borderRadius: 100,borderColor: "#68BF7B",borderWidth: 2,marginTop: 10,justifyContent: "center",}}>
-              <Text style={{ fontSize: 12, textAlign: "center" }}> {scoreCards[1]?.finalscore} </Text>
-            </View>
-          </View>
-        )}
-  </>
-  )
-)
-  )
-
-      ):(
-        <>
-        {scoreCards[1] && (
-          <View style={{alignSelf: "flex-start",alignItems: "center",width: 140,position: "absolute",marginTop: width * 0.56,}}>
-            <Text style={{ fontSize: 12, textAlign: "center" }}> {scoreCards[1]?.name} </Text>
-            <View style={{width: width * 0.15,height: height * 0.03,borderRadius: 100,borderColor: "#68BF7B",borderWidth: 2,marginTop: 10,justifyContent: "center",}}>
-              <Text style={{ fontSize: 12, textAlign: "center" }}> {scoreCards[1]?.finalscore} </Text>
-            </View>
-          </View>
-        )}
-        </>
+        ) : (
+          <>
+            {scoreCards[1] && (
+              <View style={{ alignSelf: "flex-start", alignItems: "center", width: 140, position: "absolute", marginTop: width * 0.56, }}>
+                <Text style={{ fontSize: 12, textAlign: "center" }}> {scoreCards[1]?.name} </Text>
+                <View style={{ width: width * 0.15, height: height * 0.03, borderRadius: 100, borderColor: "#68BF7B", borderWidth: 2, marginTop: 10, justifyContent: "center", }}>
+                  <Text style={{ fontSize: 12, textAlign: "center" }}> {scoreCards[1]?.finalscore} </Text>
+                </View>
+              </View>
+            )}
+          </>
         )}
 
 
-{auth.currentUser.uid == scoreCards[2]?.uid ? (
-comps.closed == 'closed' ? (
-  <>
-        {scoreCards[2] && (
-          <View
-            style={{alignSelf: "flex-end",alignItems: "center",width: 140,position: "absolute",marginTop: width * 0.56,}}>
-            <Text style={{ fontSize: 12, textAlign: "center" }}> {scoreCards[2]?.name} </Text>
-            <View
-              style={{width: width * 0.15,height: height * 0.03,borderRadius: 100,borderColor: "#68BF7B",borderWidth: 2,marginTop: 10,justifyContent: "center",}}>
-                <TouchableOpacity onPress={() => navigation.navigate("Golfcourse")}>
-                  <Text style={{ fontSize: 12, textAlign: "center" }}>{scoreCards[2]?.finalscore} </Text>
-                </TouchableOpacity>
-            </View>
-          </View>
-        )}
+        {auth.currentUser.uid === scoreCards[2]?.uid ? (
+          currentComp.closed === 'closed' ? (
+            <>
+              {scoreCards[2] && (
+                <View
+                  style={{ alignSelf: "flex-end", alignItems: "center", width: 140, position: "absolute", marginTop: width * 0.56, }}>
+                  <Text style={{ fontSize: 12, textAlign: "center" }}> {scoreCards[2]?.name} </Text>
+                  <View
+                    style={{ width: width * 0.15, height: height * 0.03, borderRadius: 100, borderColor: "#68BF7B", borderWidth: 2, marginTop: 10, justifyContent: "center", }}>
+                    <TouchableOpacity onPress={() => handleOnNavigate(scoreCards[2])}>
+                      <Text style={{ fontSize: 12, textAlign: "center" }}>{scoreCards[2]?.finalscore} </Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              )}
 
-  </>
-):( 
-scoreCards[2]?.hole1 == 0 ? (
-  <>
-        {scoreCards[2] && (
-          <View
-            style={{alignSelf: "flex-end",alignItems: "center",width: 140,position: "absolute",marginTop: width * 0.56,}}>
-            <Text style={{ fontSize: 12, textAlign: "center" }}> {scoreCards[2]?.name} </Text>
-            <View
-              style={{width: width * 0.15,height: height * 0.03,borderRadius: 100,borderColor: "#68BF7B",borderWidth: 2,marginTop: 10,justifyContent: "center",}}>
-                <TouchableOpacity onPress={() => navigation.navigate("Golfcourse")}>
-                  <Text style={{ fontSize: 12, textAlign: "center" }}>Start</Text>
-                </TouchableOpacity>
-            </View>
-          </View>
-        )}
+            </>
+          ) : (
+            scoreCards[2]?.hole1 === 0 ? (
+              <>
+                {scoreCards[2] && (
+                  <View
+                    style={{ alignSelf: "flex-end", alignItems: "center", width: 140, position: "absolute", marginTop: width * 0.56, }}>
+                    <Text style={{ fontSize: 12, textAlign: "center" }}> {scoreCards[2]?.name} </Text>
+                    <View
+                      style={{ width: width * 0.15, height: height * 0.03, borderRadius: 100, borderColor: "#68BF7B", borderWidth: 2, marginTop: 10, justifyContent: "center", }}>
+                      <TouchableOpacity onPress={() => handleOnNavigate(scoreCards[2])}>
+                        <Text style={{ fontSize: 12, textAlign: "center" }}>Start</Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                )}
 
-  </>
-):(
-  scoreCards[2]?.finalscore == 0 ? (
-  <>
-        {scoreCards[2] && (
-          <View
-            style={{alignSelf: "flex-end",alignItems: "center",width: 140,position: "absolute",marginTop: width * 0.56,}}>
-            <Text style={{ fontSize: 12, textAlign: "center" }}> {scoreCards[2]?.name} </Text>
-            <View
-              style={{width: width * 0.15,height: height * 0.03,borderRadius: 100,borderColor: "#68BF7B",borderWidth: 2,marginTop: 10,justifyContent: "center",}}>
-                <TouchableOpacity onPress={() => navigation.navigate("Golfcourse")}>
-                  <Text style={{ fontSize: 12, textAlign: "center" }}>Continue</Text>
-                </TouchableOpacity>
+              </>
+            ) : (
+              scoreCards[2]?.finalscore === 0 ? (
+                <>
+                  {scoreCards[2] && (
+                    <View
+                      style={{ alignSelf: "flex-end", alignItems: "center", width: 140, position: "absolute", marginTop: width * 0.56, }}>
+                      <Text style={{ fontSize: 12, textAlign: "center" }}> {scoreCards[2]?.name} </Text>
+                      <View
+                        style={{ width: width * 0.15, height: height * 0.03, borderRadius: 100, borderColor: "#68BF7B", borderWidth: 2, marginTop: 10, justifyContent: "center", }}>
+                        <TouchableOpacity onPress={() => handleOnNavigate(scoreCards[2])}>
+                          <Text style={{ fontSize: 12, textAlign: "center" }}>Continue</Text>
+                        </TouchableOpacity>
 
-            </View>
-          </View>
-        )}
+                      </View>
+                    </View>
+                  )}
 
-  </>
-):(
-  <>
-        {scoreCards[2] && (
-          <View
-            style={{alignSelf: "flex-end",alignItems: "center",width: 140,position: "absolute",marginTop: width * 0.56,}}>
-            <Text style={{ fontSize: 12, textAlign: "center" }}> {scoreCards[2]?.name} </Text>
-            <View
-              style={{width: width * 0.15,height: height * 0.03,borderRadius: 100,borderColor: "#68BF7B",borderWidth: 2,marginTop: 10,justifyContent: "center",}}>
-              <Text style={{ fontSize: 12, textAlign: "center" }}> {scoreCards[2]?.finalscore} </Text>
-            </View>
-          </View>
-        )}
-  </>
-  )
-)
-  )
-      ):(
-        <>
-        {scoreCards[2] && (
-          <View
-            style={{alignSelf: "flex-end",alignItems: "center",width: 140,position: "absolute",marginTop: width * 0.56,}}>
-            <Text style={{ fontSize: 12, textAlign: "center" }}> {scoreCards[2]?.name} </Text>
-            <View
-              style={{width: width * 0.15,height: height * 0.03,borderRadius: 100,borderColor: "#68BF7B",borderWidth: 2,marginTop: 10,justifyContent: "center",}}>
-              <Text style={{ fontSize: 12, textAlign: "center" }}> {scoreCards[2]?.finalscore} </Text>
-            </View>
-          </View>
-        )}
-        </>
+                </>
+              ) : (
+                <>
+                  {scoreCards[2] && (
+                    <View
+                      style={{ alignSelf: "flex-end", alignItems: "center", width: 140, position: "absolute", marginTop: width * 0.56, }}>
+                      <Text style={{ fontSize: 12, textAlign: "center" }}> {scoreCards[2]?.name} </Text>
+                      <View
+                        style={{ width: width * 0.15, height: height * 0.03, borderRadius: 100, borderColor: "#68BF7B", borderWidth: 2, marginTop: 10, justifyContent: "center", }}>
+                        <Text style={{ fontSize: 12, textAlign: "center" }}> {scoreCards[2]?.finalscore} </Text>
+                      </View>
+                    </View>
+                  )}
+                </>
+              )
+            )
+          )
+        ) : (
+          <>
+            {scoreCards[2] && (
+              <View
+                style={{ alignSelf: "flex-end", alignItems: "center", width: 140, position: "absolute", marginTop: width * 0.56, }}>
+                <Text style={{ fontSize: 12, textAlign: "center" }}> {scoreCards[2]?.name} </Text>
+                <View
+                  style={{ width: width * 0.15, height: height * 0.03, borderRadius: 100, borderColor: "#68BF7B", borderWidth: 2, marginTop: 10, justifyContent: "center", }}>
+                  <Text style={{ fontSize: 12, textAlign: "center" }}> {scoreCards[2]?.finalscore} </Text>
+                </View>
+              </View>
+            )}
+          </>
         )}
 
       </View>
       <View style={{ width, height: height * 0.37 }}>
-        <ScrollView contentContainerStyle={{alignItems: "center",paddingTop: 5,paddingBottom: 5,}}>
+        <ScrollView contentContainerStyle={{ alignItems: "center", paddingTop: 5, paddingBottom: 5, }}>
           {scoreCards?.length > 3 &&
             scoreCards?.splice(3)?.map((score, index) => (
               <View key={index}>
-                <View style={{width: width * 0.82,height: 75,backgroundColor: "#fff",borderRadius: 9,marginBottom: 10,shadowColor: "#5B5B5B",shadowOffset: { width: 0, height: 2 },shadowOpacity: 0.4,elevation: 5,justifyContent: "center",marginLeft: width * 0.08,flexDirection: "row",}}>
-                  <View style={{width: width * 0.18,height: 55,backgroundColor: "#FFD940",borderRadius: 8,justifyContent: "center",alignSelf: "center",position: "absolute",left: -width * 0.08,}}>
-                    <Text style={{fontSize: 16,textAlign: "center",fontWeight: "bold",}}> {index+4} </Text>
+              {auth.currentUser.uid === score.uid ? (
+                <View style={{ width: width * 0.82, height: 75, backgroundColor:'#fff',  borderColor: "#FFD940",  borderWidth:3, borderRadius: 9, marginBottom: 10, shadowColor: "#5B5B5B", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.4, elevation: 5, justifyContent: "center", marginLeft: width * 0.08, flexDirection: "row", }}>
+                  <View style={{ width: width * 0.18, height: 55, backgroundColor: "#FFD940",  borderColor: "#fff",  borderWidth:3, borderRadius: 8, justifyContent: "center", alignSelf: "center", position: "absolute", left: -width * 0.08, }}>
+                    <Text style={{ fontSize: 16, textAlign: "center", fontWeight: "bold", }}> {index + 4} </Text>
                   </View>
-                  <Image resizeMode={"cover"} source={{ uri: score?.profile }} style={{width: 55,height: 55,borderRadius: 100,backgroundColor: "red",alignSelf: "center",position: "absolute",left: width * 0.12}}/>
-                  <Text style={{fontSize: 12,alignSelf: "center",width: width * 0.3,position: "absolute",left: width * 0.28,textAlign: "left",}}>{score?.name} </Text>
-
-                  
-{auth.currentUser.uid == score.uid ? (
-comps.closed == 'closed' ? (
-  <>
-            <TouchableOpacity style={{width: width * 0.2,height: height * 0.03,borderRadius: 100,borderColor: "#68BF7B",borderWidth: 2,justifyContent: "center",alignSelf: "center",position: "absolute",right: 10,}} onPress={() => navigation.navigate("Golfcourse")}>
-              <Text style={{ fontSize: 12, textAlign: "center" }}>{score?.finalscore}</Text>
-            </TouchableOpacity> 
-
-  </>
-):( 
-
-score?.hole1 == 0 ? (
-  <>
-            <TouchableOpacity style={{width: width * 0.2,height: height * 0.03,borderRadius: 100,borderColor: "#68BF7B",borderWidth: 2,justifyContent: "center",alignSelf: "center",position: "absolute",right: 10,}} onPress={() => navigation.navigate("Golfcourse")}>
-              <Text style={{ fontSize: 12, textAlign: "center" }}>Start</Text>
-            </TouchableOpacity> 
-
-  </>
-):(
-  
-score?.finalscore == 0 ? (
-  <>
-            <TouchableOpacity style={{width: width * 0.2,height: height * 0.03,borderRadius: 100,borderColor: "#68BF7B",borderWidth: 2,justifyContent: "center",alignSelf: "center",position: "absolute",right: 10,}} onPress={() => navigation.navigate("Golfcourse")}>
-              <Text style={{ fontSize: 12, textAlign: "center" }}>Continue</Text>
-            </TouchableOpacity> 
-
-  </>
-):(
-  <>
-            <View style={{width: width * 0.2,height: height * 0.03,borderRadius: 100,borderColor: "#68BF7B",borderWidth: 2,justifyContent: "center",alignSelf: "center",position: "absolute",right: 10,}}>
-              <Text style={{ fontSize: 12, textAlign: "center" }}>{score?.finalscore}</Text>
-            </View>
-  </>
-  )
-)
-  )
-
-      ):(
-        <>
-                  <View style={{width: width * 0.2,height: height * 0.03,borderRadius: 100,borderColor: "#68BF7B",borderWidth: 2,justifyContent: "center",alignSelf: "center",position: "absolute",right: 10,}}>
-                    <Text style={{ fontSize: 12, textAlign: "center" }}>{score?.finalscore}</Text>
-                  </View>
-        </>
-        )}
+                  <Image resizeMode={"cover"} source={{ uri: score?.profile }} style={{ width: 55, height: 55, borderRadius: 100, backgroundColor: "red", alignSelf: "center", position: "absolute", left: width * 0.12 }} />
+                  <Text style={{ fontSize: 12, alignSelf: "center", width: width * 0.3, position: "absolute", left: width * 0.28, textAlign: "left", }}>{score?.name} </Text>
 
 
+                  {auth.currentUser.uid === score.uid ? (
+                    currentComp.closed === 'closed' ? (
+                      <>
+                        <TouchableOpacity style={{ width: width * 0.2, height: height * 0.03, borderRadius: 100, borderColor: "#68BF7B", borderWidth: 2, justifyContent: "center", alignSelf: "center", position: "absolute", right: 10, }} onPress={() => handleOnNavigate(score)}>
+                          <Text style={{ fontSize: 12, textAlign: "center" }}>{score?.finalscore}</Text>
+                        </TouchableOpacity>
 
-                  
+                      </>
+                    ) : (
+
+                      score?.hole1 === 0 ? (
+                        <>
+                          <TouchableOpacity style={{ width: width * 0.2, height: height * 0.03, borderRadius: 100, borderColor: "#68BF7B", borderWidth: 2, justifyContent: "center", alignSelf: "center", position: "absolute", right: 10, }} onPress={() => handleOnNavigate(score)}>
+                            <Text style={{ fontSize: 12, textAlign: "center" }}>Start</Text>
+                          </TouchableOpacity>
+
+                        </>
+                      ) : (
+
+                        score?.finalscore === 0 ? (
+                          <>
+                            <TouchableOpacity style={{ width: width * 0.2, height: height * 0.03, borderRadius: 100, borderColor: "#68BF7B", borderWidth: 2, justifyContent: "center", alignSelf: "center", position: "absolute", right: 10, }} onPress={() => handleOnNavigate(score)}>
+                              <Text style={{ fontSize: 12, textAlign: "center" }}>Continue</Text>
+                            </TouchableOpacity>
+
+                          </>
+                        ) : (
+                          <>
+                            <View style={{ width: width * 0.2, height: height * 0.03, borderRadius: 100, borderColor: "#68BF7B", borderWidth: 2, justifyContent: "center", alignSelf: "center", position: "absolute", right: 10, }}>
+                              <Text style={{ fontSize: 12, textAlign: "center" }}>{score?.finalscore}</Text>
+                            </View>
+                          </>
+                        )
+                      )
+                    )
+
+                  ) : (
+                    <>
+                      <View style={{ width: width * 0.2, height: height * 0.03, borderRadius: 100, borderColor: "#68BF7B", borderWidth: 2, justifyContent: "center", alignSelf: "center", position: "absolute", right: 10, }}>
+                        <Text style={{ fontSize: 12, textAlign: "center" }}>{score?.finalscore}</Text>
+                      </View>
+                    </>
+                  )}
+
+
+
+
                 </View>
+                ):(
+                  <>
+                        <View style={{ width: width * 0.82, height: 75, backgroundColor: "#fff", borderRadius: 9, marginBottom: 10, shadowColor: "#5B5B5B", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.4, elevation: 5, justifyContent: "center", marginLeft: width * 0.08, flexDirection: "row", }}>
+                  <View style={{ width: width * 0.18, height: 55, backgroundColor: "#FFD940", borderRadius: 8, justifyContent: "center", alignSelf: "center", position: "absolute", left: -width * 0.08, }}>
+                    <Text style={{ fontSize: 16, textAlign: "center", fontWeight: "bold", }}> {index + 4} </Text>
+                  </View>
+                  <Image resizeMode={"cover"} source={{ uri: score?.profile }} style={{ width: 55, height: 55, borderRadius: 100, backgroundColor: "red", alignSelf: "center", position: "absolute", left: width * 0.12 }} />
+                  <Text style={{ fontSize: 12, alignSelf: "center", width: width * 0.3, position: "absolute", left: width * 0.28, textAlign: "left", }}>{score?.name} </Text>
+
+
+                  {auth.currentUser.uid === score.uid ? (
+                    currentComp.closed === 'closed' ? (
+                      <>
+                        <TouchableOpacity style={{ width: width * 0.2, height: height * 0.03, borderRadius: 100, borderColor: "#68BF7B", borderWidth: 2, justifyContent: "center", alignSelf: "center", position: "absolute", right: 10, }} onPress={() => handleOnNavigate(score)}>
+                          <Text style={{ fontSize: 12, textAlign: "center" }}>{score?.finalscore}</Text>
+                        </TouchableOpacity>
+
+                      </>
+                    ) : (
+
+                      score?.hole1 === 0 ? (
+                        <>
+                          <TouchableOpacity style={{ width: width * 0.2, height: height * 0.03, borderRadius: 100, borderColor: "#68BF7B", borderWidth: 2, justifyContent: "center", alignSelf: "center", position: "absolute", right: 10, }} onPress={() => handleOnNavigate(score)}>
+                            <Text style={{ fontSize: 12, textAlign: "center" }}>Start</Text>
+                          </TouchableOpacity>
+
+                        </>
+                      ) : (
+
+                        score?.finalscore === 0 ? (
+                          <>
+                            <TouchableOpacity style={{ width: width * 0.2, height: height * 0.03, borderRadius: 100, borderColor: "#68BF7B", borderWidth: 2, justifyContent: "center", alignSelf: "center", position: "absolute", right: 10, }} onPress={() => handleOnNavigate(score)}>
+                              <Text style={{ fontSize: 12, textAlign: "center" }}>Continue</Text>
+                            </TouchableOpacity>
+
+                          </>
+                        ) : (
+                          <>
+                            <View style={{ width: width * 0.2, height: height * 0.03, borderRadius: 100, borderColor: "#68BF7B", borderWidth: 2, justifyContent: "center", alignSelf: "center", position: "absolute", right: 10, }}>
+                              <Text style={{ fontSize: 12, textAlign: "center" }}>{score?.finalscore}</Text>
+                            </View>
+                          </>
+                        )
+                      )
+                    )
+
+                  ) : (
+                    <>
+                      <View style={{ width: width * 0.2, height: height * 0.03, borderRadius: 100, borderColor: "#68BF7B", borderWidth: 2, justifyContent: "center", alignSelf: "center", position: "absolute", right: 10, }}>
+                        <Text style={{ fontSize: 12, textAlign: "center" }}>{score?.finalscore}</Text>
+                      </View>
+                    </>
+                  )}
+
+
+
+
+                </View>          
+                  
+                  
+                  </>
+                )}
               </View>
             ))}
         </ScrollView>
