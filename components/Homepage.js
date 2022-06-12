@@ -43,7 +43,6 @@ export default function Homepage({navigation}) {
 
     //set comps
     const [comps, setComps]= useState([]);
-    const [comps2, setComps2]= useState([]);
     const [Mycomps, setMyComps]= useState([]);
     const [Pastcomps, setPastComps]= useState([]);
 

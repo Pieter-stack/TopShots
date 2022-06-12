@@ -256,3 +256,8 @@ export const getCompetitionRealtime = () => {
 }
 
 
+export const getCourse = () => {
+  return query(collection(db, "golfcourses"), where("venue", "==", "Bryanston Country Club"));
+
+}
+

@@ -138,7 +138,7 @@ export default function Leaderboard({ route, navigation }) {
 
   const handleOnNavigate = (scorecard) => {
     navigation.navigate("Golfcourse", {
-      compitation: currentComp,
+      competition: currentComp,
       score: scorecard
     })
   }
