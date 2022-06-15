@@ -3,21 +3,12 @@ import react from 'react';
 import { StatusBar,StyleSheet, Text, View, SafeAreaView, Image, TouchableOpacity } from 'react-native';
 import { Dimensions } from "react-native";
 
-//Import fonts
-import * as Font from 'expo-font';
-
 //Import images
 import landing from '../assets/images/landing.png';
 
 //Get width and height of device for responsiveness
 var width = Dimensions.get('window').width;
 var height = Dimensions.get('window').height;
-
-    //get fonts
-    Font.loadAsync({
-      'Allan' :require('../assets/fonts/Allan-Bold.ttf'),
-      'Roboto': require('../assets/fonts/Roboto-Regular.ttf')
-    });
 
 //Content
 export default function StartPage({navigation}) {
@@ -44,7 +35,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#fff',
     alignItems: 'center'
-
   },
   heading:{
     textAlign:'center',
@@ -59,7 +49,6 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     marginTop:height/50,
     resizeMode:'contain'
-
   },
   body:{
     textAlign:'center',

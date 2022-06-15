@@ -1,20 +1,20 @@
 //Import Components
-import React, { useState,useMemo } from 'react';
+import React, {useEffect, useState} from 'react';
 import { StatusBar,StyleSheet, Text, View, SafeAreaView, Image, TouchableOpacity, TextInput,FlatList,Footer,Alert, KeyboardAvoidingView } from 'react-native';
 import { Dimensions } from "react-native";
 import { BlurView } from 'expo-blur';
 import { createUserOnRegister } from '../Database';
 import DropDownPicker from 'react-native-dropdown-picker';
+import {MaterialCommunityIcons as Icon} from '@expo/vector-icons';
+import * as Notifications from 'expo-notifications';
+import * as Permissions from 'expo-permissions'
+
 //firebase
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import {auth} from '../firebase';
 
-//Import fonts
-import * as Font from 'expo-font';
-
 //Import Images
 import logo from '../assets/images/logo.png';
-
 
 //Get width and height of device for responsiveness
 var width = Dimensions.get('window').width;
@@ -23,12 +23,6 @@ var height = Dimensions.get('window').height;
 //set image responsiveness
 var imagewidth =  Math.round(width*0.8);
 var imageHeight = Math.round(height*0.26);
-
-    //get fonts
-    Font.loadAsync({
-      'Allan' :require('../assets/fonts/Allan-Bold.ttf'),
-      'Roboto': require('../assets/fonts/Roboto-Regular.ttf')
-    });
 
 //slide content
 const slides =[
@@ -52,10 +46,46 @@ const slides =[
 
 //Content
 export default function Register({navigation}) {
+  //get push notification token
+  const [getToken, SetToken] = useState('null')
 
+  useEffect(()=>{
+    //register user for push notifications
+    registerForPushNotification().then(token=>console.log(token)).catch(err=>console.log(err))
+  },[])
+//request user for push notifications
+async function registerForPushNotification(){
+  const {status} = await Permissions.getAsync(Permissions.NOTIFICATIONS);
+  if(status !='granted'){
+    const {status} = await Permissions.askAsync(Permissions.NOTIFICATIONS);
+  }
 
+  if(status != 'granted'){
+    alert('Fail to get the push token');
+    return;
+  }
 
-
+  if(Platform.OS === 'android'){
+    Notifications.setNotificationChannelAsync("default",{
+      name:"default",
+      importance: Notifications.AndroidImportance.MAX,
+    });
+  }
+  //get token
+  const token = (await Notifications.getExpoPushTokenAsync()).data;
+  SetToken((await Notifications.getExpoPushTokenAsync()).data);
+  return token;
+}
+  //pw visibility toggle
+  const [secureEntry, setSecureEntry] = useState(true);
+  //pw show
+  const onIconPressShow = () =>{
+  setSecureEntry(false)
+  }
+  //pw hide
+  const onIconPressHide = () =>{
+    setSecureEntry(true)
+    }
 
 //get current slide index point
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
@@ -91,42 +121,39 @@ export default function Register({navigation}) {
   function random_item(items)
 {
   
-return items[Math.floor(Math.random()*items.length)];
+  return items[Math.floor(Math.random()*items.length)];
      
 }
 
-var items = ["amber", "blue", "blueGrey", "brown", "cyan", "deepOrange", "deepPurple", "green", "grey", "indigo", "lightBlue", "lightGreen", "lime", "orange", "pink","purple", "red", "teal", "yellow"];
-var color = random_item(items);
+  var items = ["amber", "blue", "blueGrey", "brown", "cyan", "deepOrange", "deepPurple", "green", "grey", "indigo", "lightBlue", "lightGreen", "lime", "orange", "pink","purple", "red", "teal", "yellow"];
+  var color = random_item(items);
 
-// API
+// API for custom user pfp
 var apipfp = "https://avatars.dicebear.com/api/initials/"+Name+"%20"+surname+".png?backgroundColors[]="+color+"";
 
-
-const [open, setOpen] = useState(false);
-const [gender, onGenderChange] = useState(null);
-const [items1, setItems1] = useState([
-  {label: 'Male', value: 'Male'},
-  {label: 'Female', value: 'Female'},
-]);
-
-
-//onPress Register a user
-const handleRegisterPress = () =>{
-  apipfp
-        //create user function  (auth instance, email, password)
-        createUserWithEmailAndPassword(auth, email, password)
-        .then((userCredentials) => {
-                 //executes when creation
-                 const user = userCredentials.user;
-                createUserOnRegister(user,Name, surname, handicap, username, age, gender,apipfp)
-        })
-        .catch((error) =>{
-            //executes when failure
-             Alert.alert('Failed to register please try again');
-        
-        })
+  //useStates for data
+  const [open, setOpen] = useState(false);
+  const [gender, onGenderChange] = useState(null);
+  const [items1, setItems1] = useState([
+    {label: 'Male', value: 'Male'},
+    {label: 'Female', value: 'Female'},
+  ]);
 
 
+  //onPress Register a user
+  const handleRegisterPress = () =>{
+    //create user function  (auth instance, email, password)
+    createUserWithEmailAndPassword(auth, email, password)
+    .then((userCredentials) => {
+             //executes when creation
+             const user = userCredentials.user;
+            createUserOnRegister(user,Name, surname, handicap, username, age, gender,apipfp,getToken)
+    })
+    .catch((error) =>{
+        //executes when failure
+         Alert.alert('Failed to register please try again');
+    
+    });    
 }
 
 //slide render
@@ -275,16 +302,15 @@ const Slide = ({item}) => {
           />
           <Text style={styles.label}>Gender</Text>
           <DropDownPicker style={styles.dropdown} dropDownDirection="TOP"
-containerStyle={{width:width/1.2, alignSelf:'center'}}
-
-placeholder=""
-open={open}
-value={gender}
-items={items1}
-setOpen={setOpen}
-setValue={onGenderChange}
-setItems={setItems1}
-/>
+            containerStyle={{width:width/1.2, alignSelf:'center'}}
+            placeholder=""
+            open={open}
+            value={gender}
+            items={items1}
+            setOpen={setOpen}
+            setValue={onGenderChange}
+            setItems={setItems1}
+          />
             <Text style={styles.label}>Handicap</Text>
             <TextInput 
             selectionColor={'#064635'}
@@ -309,16 +335,15 @@ setItems={setItems1}
           />
           <Text style={styles.label}>Gender</Text>
           <DropDownPicker style={styles.dropdown} dropDownDirection="TOP"
-containerStyle={{width:width/1.2, alignSelf:'center'}}
-
-placeholder=""
-open={open}
-value={gender}
-items={items1}
-setOpen={setOpen}
-setValue={onGenderChange}
-setItems={setItems1}
-/>
+            containerStyle={{width:width/1.2, alignSelf:'center'}}
+            placeholder=""
+            open={open}
+            value={gender}
+            items={items1}
+            setOpen={setOpen}
+            setValue={onGenderChange}
+            setItems={setItems1}
+          />
             <Text style={styles.label}>Handicap</Text>
             <TextInput 
             selectionColor={'#064635'} 
@@ -364,13 +389,29 @@ setItems={setItems1}
           />
 
             <Text style={styles.label}>Password</Text>
+            <View>
             <TextInput 
             selectionColor={'#064635'} 
               value={password}
+              autoCapitalize='none'
               onChangeText={onPasswordChange}
               style={styles.input}
-              secureTextEntry={true}
+              secureTextEntry={secureEntry}
             />
+            {secureEntry == true? (
+              <>
+            <TouchableOpacity  style={{position:'absolute', marginLeft:width*0.70, marginTop:height*0.026}} onPress={onIconPressShow} >
+          <Icon name='eye' size={30}/>   
+          </TouchableOpacity>
+          </>
+            ):(
+              <>
+          <TouchableOpacity  style={{position:'absolute', marginLeft:width*0.70, marginTop:height*0.026}} onPress={onIconPressHide} >
+          <Icon name='eye-off' size={30}/>   
+          </TouchableOpacity>
+          </>
+          )}
+          </View>
       </BlurView>
     </>
   ):(
@@ -393,12 +434,28 @@ setItems={setItems1}
           />
 
             <Text style={styles.label}>Password</Text>
+            <View>
             <TextInput  
               value={password}
-              secureTextEntry={true}
+              autoCapitalize='none'
+              secureTextEntry={secureEntry}
               onChangeText={onPasswordChange}
               style={styles.input}
-            />  
+            /> 
+                      {secureEntry == true? (
+              <>
+            <TouchableOpacity  style={{position:'absolute', marginLeft:width*0.70, marginTop:height*0.026}} onPress={onIconPressShow} >
+          <Icon name='eye' size={30}/>   
+          </TouchableOpacity>
+          </>
+            ):(
+              <>
+          <TouchableOpacity  style={{position:'absolute', marginLeft:width*0.70, marginTop:height*0.026}} onPress={onIconPressHide} >
+          <Icon name='eye-off' size={30}/>   
+          </TouchableOpacity>
+          </>
+          )}
+          </View> 
       </View>
     </>
   )
@@ -411,8 +468,6 @@ setItems={setItems1}
     </SafeAreaView>
   ); 
 }
-
-
 
   //Styling
   const styles = StyleSheet.create({
@@ -496,8 +551,7 @@ setItems={setItems1}
       fontFamily:'Roboto',
       paddingLeft:10,
       fontSize:16 ,
-      backgroundColor:'rgba(0, 0, 0, 0)',
-  
+      backgroundColor:'rgba(0, 0, 0, 0)'
     },
       disabled:{
         opacity:0.5,
@@ -507,7 +561,6 @@ setItems={setItems1}
         alignSelf:'center',
         borderRadius:7 
       }
-
   });
   
 

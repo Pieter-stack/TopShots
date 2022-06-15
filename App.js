@@ -1,18 +1,20 @@
-
 //Import Components
 import React, {useEffect, useState} from 'react';
-import AppLoading from 'expo-app-loading';
 import { NavigationContainer, TabActions } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as SplashScreen from 'expo-splash-screen';
-
-
+import * as Font from 'expo-font';
+import AppLoading from 'expo-app-loading';
+import useFonts from './hooks/useFonts';
 
 //splashscreen timer
 SplashScreen.preventAutoHideAsync();
 setTimeout(SplashScreen.hideAsync, 5000);
 
+import { LogBox } from 'react-native';
+LogBox.ignoreLogs(['Warning: ...']); // Ignore log notification by message
+LogBox.ignoreAllLogs();//Ignore all log notifications
 
 //Import pages
 import Startpage from './components/StartPage';
@@ -26,28 +28,19 @@ import Leaderboard from './components/Leaderboard';
 import Golfcourse from './components/Golfcourse';
 
 
-
 //firebase
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from './firebase';
+import { Platform } from 'react-native';
 
+//Stack navigation
 const Stack = createNativeStackNavigator();
-
-
-
-
 
 //Content
 export default function App() {
 
-
-
-
-
-  
-
+  //check and set if user is logged in or signed out
   const [ loggedIn, setLoggedIn] = useState(false);
-
 
   useEffect(() => {
 
@@ -65,13 +58,10 @@ export default function App() {
     return unsubscribe;
 
   }, []);
-
-console.log(loggedIn)
-
-
   
-    //set state 
+  //set state 
   const [isAppFirstLaunched, setisAppFirstLaunched] = React.useState(null);
+
   //useEffect to check if app opened for first time
   React.useEffect( () => {
     async function fetchData() {
@@ -91,21 +81,24 @@ console.log(loggedIn)
   fetchData()
   }, []); 
 
-  const [IsReady, setIsReady] = useState(false);
+//set fonts on all pages through hooks
+  const [IsReady, SetIsReady] = useState(false);
 
+//Load fonts
   const LoadFonts = async () => {
     await useFonts();
   };
-  
-  // if (!IsReady) {
-  //   return (
-  //     <AppLoading
-  //       startAsync={LoadFonts}
-  //       onFinish={() => setIsReady(true)}
-  //       onError={() => {}}
-  //     />
-  //   );
-  // }
+
+  //check if fonts are ready 
+  if (!IsReady) {
+    return (
+      <AppLoading
+        startAsync={LoadFonts}
+        onFinish={() => SetIsReady(true)}
+        onError={() => {}}
+      />
+    );
+  }
 
 //content Render
   return (
@@ -115,31 +108,26 @@ isAppFirstLaunched !=null && (// if opened for first time render startpage else 
       <Stack.Navigator screenOptions={{headerShown: false}} >
 {loggedIn ? (
         <>
-        
-        <Stack.Screen name="Homepage" component={Homepage} />
-        <Stack.Screen name="Profile" component={Profilepage} />
-        <Stack.Screen name="CompReg" component={Competitionreg}/>
-        <Stack.Screen name="CompEnter" component={Competitionenter}/>
-        <Stack.Screen name="Leaderboard" component={Leaderboard}/>
-        <Stack.Screen name="Golfcourse" component={Golfcourse}/>
+          <Stack.Screen name="Homepage" component={Homepage} />
+          <Stack.Screen name="Profile" component={Profilepage} />
+          <Stack.Screen name="CompReg" component={Competitionreg}/>
+          <Stack.Screen name="CompEnter" component={Competitionenter}/>
+          <Stack.Screen name="Leaderboard" component={Leaderboard}/>
+          <Stack.Screen name="Golfcourse" component={Golfcourse}/>
         </>
       ):(
         <>
-        {isAppFirstLaunched && (
-         <Stack.Screen  name="Startpage" component={Startpage} />
-        )}
-        <Stack.Screen name="Login" component={Login} />
-        <Stack.Screen name="Register" component={Register} />
-     
+          {isAppFirstLaunched && (
+            <Stack.Screen  name="Startpage" component={Startpage} />
+          )}
+            <Stack.Screen name="Login" component={Login} />
+            <Stack.Screen name="Register" component={Register} />
         </>
         )}
-
-      </Stack.Navigator>
-      
+      </Stack.Navigator> 
     </NavigationContainer>
     )
   );
-
 }
 
 

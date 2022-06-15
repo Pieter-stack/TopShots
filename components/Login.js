@@ -3,13 +3,11 @@ import React, { useState } from 'react';
 import {Platform, StatusBar,StyleSheet, Text, View, SafeAreaView, Image, TouchableOpacity, TextInput, Alert , KeyboardAvoidingView } from 'react-native';
 import { Dimensions } from "react-native";
 import { BlurView } from 'expo-blur';
+import {MaterialCommunityIcons as Icon} from '@expo/vector-icons';
 
 //firebase
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import {auth} from '../firebase';
-
-//Import fonts
-import * as Font from 'expo-font';
 
 //Import Images
 import logo from '../assets/images/logo.png';
@@ -23,37 +21,38 @@ var height = Dimensions.get('window').height;
  var imagewidth =  Math.round(width*0.8);
  var imageHeight = Math.round(height*0.3);
 
-    //get fonts
-    Font.loadAsync({
-      'Allan' :require('../assets/fonts/Allan-Bold.ttf'),
-      'Roboto': require('../assets/fonts/Roboto-Regular.ttf')
-    });
-
 //Content
 export default function Login({navigation}) {
 
-//set States
+  //set States
   const [email, onEmailChange]=useState("");
   const [password, onPasswordChange]=useState("");
 
   //onPress Login
   const handleLoginPress = () =>{
-
-  
     signInWithEmailAndPassword(auth, email, password)
     .then((userCredentials) =>{
         const user = userCredentials.user;
         navigation.replace('Homepage');
-
-
-
     })
     .catch((error) =>{
         Alert.alert('Wrong username or password.');
     })
 
   
+  };
+  //pw visibility toggle
+  const [secureEntry, setSecureEntry] = useState(true);
+
+  //pw visible
+  const onIconPressShow = () =>{
+  setSecureEntry(false);
   }
+  //pw hidden
+  const onIconPressHide = () =>{
+    setSecureEntry(true);
+  }
+
 
  //Content Render
     return (
@@ -62,78 +61,106 @@ export default function Login({navigation}) {
           <Image source={logo} style={styles.logoimg}></Image>
           <Image source={loginimg} style={styles.loginimg}></Image>
           <Text style={styles.heading}>Welcome Back</Text>
-        <KeyboardAvoidingView style={{ position:'absolute',
-          bottom:height*0.21,width:'100%',flexDirection:'row',justifyContent:'space-around'
-          }} behavior={Platform.OS === 'ios' ? 'position' : "padding"} keyboardVerticalOffset={Platform.OS === 'ios' ? 30 : 0}>
-
+        <KeyboardAvoidingView style={{ position:'absolute',bottom:height*0.21,width:'100%',flexDirection:'row',justifyContent:'space-around'}} behavior={Platform.OS === 'ios' ? 'position' : "padding"} keyboardVerticalOffset={Platform.OS === 'ios' ? 30 : 0}>
 {Platform.OS === 'ios' ?(
-    <>
-      <BlurView
-        style={{marginBottom:-15}}
-        tint="light"
-        intensity={30}
-        reducedTransparencyFallbackColor="white"
-      >
-        <Text style={styles.label}>Email</Text>
-          <TextInput  
-            value={email}
-            onChangeText={onEmailChange}
-            style={styles.input}
-            selectionColor={'#064635'}  
-          />
-          <Text style={styles.label}>Password</Text>
-            <TextInput  
-              value={password}
-              onChangeText={onPasswordChange}
-              style={styles.input}
-              secureTextEntry={true}
-              selectionColor={'#064635'}  
-            />
-      </BlurView>
-    </>
-  ):(
-    <>
-      <View
-        style={{marginBottom:10, backgroundColor:'white',opacity:0.95, height:height*0.26}}
-        blurType="light"
-        blurAmount={30}
-      >
-        <Text style={styles.label}>Email</Text>
-          <TextInput  
-            value={email}
-            onChangeText={onEmailChange}
-            style={styles.input}
-            selectionColor={'#064635'}  
-          />
-          <Text style={styles.label}>Password</Text>
-            <TextInput  
-              value={password}
-              onChangeText={onPasswordChange}
-              style={styles.input}
-              secureTextEntry={true}
-              selectionColor={'#064635'}  
-            />
-      </View>
-    </>
-  )
-}
-      </KeyboardAvoidingView>
-          <View style={{position:'absolute' , bottom:20}}>
-            <TouchableOpacity disabled={!email || !password} onPress={handleLoginPress} style={!email || !password ? styles.disabled  : styles.loginbtn}> 
-              <Text style={styles.loginbtnText}>Login</Text>
-            </TouchableOpacity>
-              <View style={{flexDirection:'row', alignSelf:'center'}}>
-                <Text style={styles.body}>Don't have an account?</Text>  
-            <TouchableOpacity onPress={() => navigation.navigate('Register')}>
-              <Text style={styles.bodylink}>Register</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </SafeAreaView> 
-    );
-  }
-  
+  <>
+    <BlurView
+      style={{marginBottom:-15}}
+      tint="light"
+      intensity={30}
+      reducedTransparencyFallbackColor="white"
+    >
+      <Text style={styles.label}>Email</Text>
+      <TextInput  
+        value={email}
+        onChangeText={onEmailChange}
+        style={styles.input}
+        selectionColor={'#064635'}  
+      />
+      <Text style={styles.label}>Password</Text>
+      <View>
+        <TextInput  
+          value={password}
+          autoCapitalize='none'
+          onChangeText={onPasswordChange}
+          style={styles.input}
+          secureTextEntry={secureEntry}
+          selectionColor={'#064635'}  
+        />
+{secureEntry == true? (
+  <>
+    <TouchableOpacity  style={{position:'absolute', marginLeft:width*0.95, marginTop:height*0.026}} onPress={onIconPressShow} >
+      <Icon name='eye' size={30}/>   
+    </TouchableOpacity>
+  </>
+):(
+  <>
+    <TouchableOpacity  style={{position:'absolute', marginLeft:width*0.95, marginTop:height*0.026}} onPress={onIconPressHide} >
+      <Icon name='eye-off' size={30}/>   
+    </TouchableOpacity>
+  </>
+)}
+</View>
+</BlurView>
+  </>
+):(
+  <>
+    <View
+      style={{marginBottom:10, backgroundColor:'white',opacity:0.95, height:height*0.26}}
+      blurType="light"
+      blurAmount={30}
+    >
+      <Text style={styles.label}>Email</Text>
+        <TextInput  
+          value={email}
+          onChangeText={onEmailChange}
+          style={styles.input}
+          selectionColor={'#064635'}  
+      />
+      <Text style={styles.label}>Password</Text>
+      <View>
+        <TextInput  
+          value={password}
+          autoCapitalize='none'
+          onChangeText={onPasswordChange}
+          style={styles.input}
 
+          secureTextEntry={secureEntry}
+          selectionColor={'#064635'}  
+        />
+{secureEntry == true? (
+  <>
+    <TouchableOpacity  style={{position:'absolute', marginLeft:width*0.95, marginTop:height*0.025}} onPress={onIconPressShow} >
+      <Icon name='eye' size={30}/>   
+    </TouchableOpacity>
+  </>
+):(
+  <>
+    <TouchableOpacity  style={{position:'absolute', marginLeft:width*0.95, marginTop:height*0.025}} onPress={onIconPressHide} >
+      <Icon name='eye-off' size={30}/>   
+    </TouchableOpacity>
+  </>
+)}
+  </View>
+</View>
+  </>
+)}
+  </KeyboardAvoidingView>
+      <View style={{position:'absolute' , bottom:20}}>
+        <TouchableOpacity disabled={!email || !password} onPress={handleLoginPress} style={!email || !password ? styles.disabled  : styles.loginbtn}> 
+          <Text style={styles.loginbtnText}>Login</Text>
+        </TouchableOpacity>
+          <View style={{flexDirection:'row', alignSelf:'center'}}>
+            <Text style={styles.body}>Don't have an account?</Text>  
+        <TouchableOpacity onPress={() => navigation.navigate('Register')}>
+          <Text style={styles.bodylink}>Register</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  </SafeAreaView> 
+);
+}
+  
   //Styling
   const styles = StyleSheet.create({
     container: {
@@ -179,8 +206,7 @@ export default function Login({navigation}) {
         marginLeft:width*0.25,
         marginRight:width*0.25,
         width:width*0.83, 
-        fontFamily:'Roboto'
-         
+        fontFamily:'Roboto'  
       },
       loginbtn:{
         backgroundColor: '#064635',
@@ -215,7 +241,5 @@ export default function Login({navigation}) {
         alignSelf:'center',
         borderRadius:7 
       }
-
-
   });
   

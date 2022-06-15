@@ -7,8 +7,6 @@ import {getFirestore} from 'firebase/firestore';
 //import storage for images
 import {getStorage} from "firebase/storage"
 
-// https://firebase.google.com/docs/web/setup#available-libraries
-
 // Your web app's Firebase configuration
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {

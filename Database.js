@@ -2,7 +2,7 @@ import { auth, db } from "./firebase";
 import { doc, setDoc, Timestamp, collection, getDoc, getDocs, addDoc, onSnapshot, query, where, orderBy, updateDoc } from 'firebase/firestore';//import firestore functions
 import { querystring } from '@firebase/util';
 
-export const createUserOnRegister = (user, Name, surname, handicap, username, age, gender, pfp) => {
+export const createUserOnRegister = (user, Name, surname, handicap, username, age, gender, pfp,getToken) => {
 
   //document reference : doc(firestore init, collection name , optional -- id of the document name/id)
   const userRef = doc(db, 'users', user.uid);
@@ -23,7 +23,8 @@ export const createUserOnRegister = (user, Name, surname, handicap, username, ag
     badges: [],
     type: 'user',
     profile: pfp,
-    imguploaded: '0'
+    imguploaded: '0',
+    pushnotification: getToken,
 
   }
 
@@ -32,26 +33,11 @@ export const createUserOnRegister = (user, Name, surname, handicap, username, ag
 
 }
 
-//get all the userdocuments
-// export const getUser = async () => {
-
-
-//   const docRef = doc(db, "users", auth.currentUser.uid);
-//   const docSnap = await getDoc(docRef);
-
-
-//     let user = docSnap.data()
-//     return user; 
-
-// }
-
 //returns our collection reference that we want to listen for real updates
 export const getUser = () => {
   return query(collection(db, "users"), where("uid", "==", auth.currentUser.uid));
 
 }
-
-
 
 //returns our collection reference that we want to listen for real updates
 export const getscoreforbadge = async (id) => {
@@ -69,9 +55,6 @@ export const getscoreforbadge = async (id) => {
 
 }
 
-
-
-
 //returns our collection reference that we want to listen for real updates
 export const getuserforbadge = async (uid) => {
 
@@ -88,7 +71,7 @@ export const getuserforbadge = async (uid) => {
 
 }
 
-
+//get all users from db
 export const getAllUsers = async () => {
 
   const users = [];
@@ -107,52 +90,16 @@ export const getAllUsers = async () => {
 
 }
 
-
-
-
-
-
-
-
-
-//new competition
+//create a new competition
 export const createCompetition = (competition) => {
 
   return addDoc(collection(db, 'competitions'), competition)
 }
 
-
 //returns our collection reference that we want to listen for real updates
 export const getAllCompsRealtime = () => {
   return collection(db, 'competitions');
 }
-
-
-
-
-
-
-
-//get competitions
-
-// export const getAllComps = async () => {
-
-//   const comps = [];
-
-// //get snapshot of our users collection
-//   const querySnapshot = await getDocs(collection(db, 'competitions'));
-
-
-// //need to loop through snapshot
-//   querySnapshot.forEach((doc) => {
-//       let comp = {...doc.data(), uid: doc.id}
-//       comps.push(comp);
-//   })
-
-// return comps;
-
-// }
-
 
 //set our profiles data
 export const updateProfile = (uid, data) => {
@@ -160,7 +107,6 @@ export const updateProfile = (uid, data) => {
   return updateDoc(userRef, data, { merge: true });//option to merge and not overrite
 
 }
-
 
 //set our profiles data
 export const updatecompetitionUsersCount = (id, data) => {
@@ -172,9 +118,7 @@ export const updatecompetitionUsersCount = (id, data) => {
 //enter a competition and get scorecard
 export const enterCompetition = async (id, venuelocation, titlecompetition) => {
 
-
   const collectionRef = collection(db, "competitions/" + id + "/scorecard")
-
 
   //create data
   const entercomp = {
@@ -208,7 +152,6 @@ export const enterCompetition = async (id, venuelocation, titlecompetition) => {
 
 }
 
-
 //see if user already entered that competition
 export const checkIfalreadyentered = async (id) => {
 
@@ -228,17 +171,11 @@ export const checkIfalreadyentered = async (id) => {
       console.log(joined.uid)
       if (joined.uid == auth.currentUser.uid) {
         joins = "true"
-        console.log("joins " + joins);
       } else {
-
         joins = "false"
-        console.log("joins" + joins);
       }
 
-
-
       if (joined.uid == auth.currentUser.uid) throw BreakException;
-
 
     });
   } catch (e) {
@@ -248,7 +185,6 @@ export const checkIfalreadyentered = async (id) => {
   return joins;
 }
 
-
 //returns our collection reference that we want to listen for real updates
 export const getCompetitionRealtime = () => {
   return query(collection(db, "competitions"), where("uid", "==", auth.currentUser.uid));
@@ -256,8 +192,4 @@ export const getCompetitionRealtime = () => {
 }
 
 
-export const getCourse = () => {
-  return query(collection(db, "golfcourses"), where("venue", "==", "Bryanston Country Club"));
-
-}
 

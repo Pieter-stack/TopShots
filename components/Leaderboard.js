@@ -3,18 +3,12 @@ import { Dimensions } from "react-native";
 import React, { useState, useEffect } from "react";
 import { StatusBar, StyleSheet, Text, View, Image, TouchableOpacity, ScrollView, TextInput, Button, } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
-import {
-  collection, onSnapshot, query, orderBy, where, arrayUnion, FieldValue, doc, updateDoc
-} from "firebase/firestore";
-
-//Import fonts
-import * as Font from "expo-font";
+import {collection, onSnapshot, query, orderBy, where, arrayUnion, FieldValue, doc, updateDoc} from "firebase/firestore";
 
 //firebase
 import { auth, db } from "../firebase";
 
 //Import images
-
 import arrow from "../assets/images/blackarrow.png";
 import { updatecompetitionUsersCount, updateProfile } from "../Database";
 
@@ -22,17 +16,11 @@ import { updatecompetitionUsersCount, updateProfile } from "../Database";
 var width = Dimensions.get("window").width;
 var height = Dimensions.get("window").height;
 
-//get fonts
-Font.loadAsync({
-  Allan: require("../assets/fonts/Allan-Bold.ttf"),
-  Roboto: require("../assets/fonts/Roboto-Regular.ttf"),
-});
-
 //Content
 export default function Leaderboard({ route, navigation }) {
-  const [currentComp, setCurrentComp] = useState(route.params); // all the users info is stored
-  const [scoreCards, setscoreCards] = useState([]); // all the users info is stored
-  const [getUsers, setUsers] = useState([]); // all the users info is stored
+  //store route paramaters and constatnt variables for db calls
+  const [currentComp, setCurrentComp] = useState(route.params); 
+  const [scoreCards, setscoreCards] = useState([]); 
   const id = currentComp.id;
 
   useEffect(() => {
@@ -42,22 +30,24 @@ export default function Leaderboard({ route, navigation }) {
 
   useFocusEffect(
     React.useCallback(() => {
+      //db queries for real time data
       const scorecardCollectionRef = collection(db, "competitions/" + id + "/scorecard");
       const usersCollectionRef = collection(db, "users");
       const competitionCollectionRef =  query(collection(db, "competitions"), where('id', "==",id));
-
+      //onsnapshot listener
       const unsubscribe = onSnapshot(usersCollectionRef, (snapshot) => {
         let allusers = {};
-
+        //loop through users
         snapshot.forEach((doc) => {
           allusers[doc.id] = doc.data();
         });
-
+        //store users and match scorecards
         onSnapshot(
           query(scorecardCollectionRef, orderBy("finalscore", "asc")),
           (snapshot) => {
             let scores = [];
             let usersdata = [];
+            //loop scorecards and add user
             snapshot.forEach((doc) => {
               scores.push({
                 ...allusers[doc.data().uid],
@@ -65,77 +55,64 @@ export default function Leaderboard({ route, navigation }) {
                  scorecardid: doc.id
               });
             });
-
-            ///want to use scores[0].uid
+            //set scorecards
             setscoreCards(scores);
             for (let i = 0; i < scores.length; i++) {
-              usersdata.push(scores[i])
-              
+              usersdata.push(scores[i]); 
             }
-        
+            //get competition data
             onSnapshot(
               query(competitionCollectionRef),
               (snapshot) => {
                 let comp = [];
-    
+                //loop through competition
                 snapshot.forEach((doc) => {
                   comp.push({
                     ...doc.data(),
                   });
                 });
-    
+                //get today's date
                 const today = new Date().getTime();
+                //get end of competitions date
                 const compEndDate = (comp[0].date?.seconds*1000) + 60480000;
-
-
+                  //error handeling idf users score is 0 at end of competition set finalscore to 300
                    if (today > compEndDate && comp[0].closed === "open") {
                     for (let i = 0; i < usersdata.length; i++) {
                       if(usersdata[i].finalscore == 0){
                         const scorecardid = usersdata[i].scorecardid;
-                        //console.log(scorecardid)
-                
                         const colRef= doc(db, 'competitions',id,'scorecard',scorecardid);
                         return updateDoc(colRef, {finalscore:300}, { merge: true });
-                      }
-                      
-                    } 
-
+                      }; 
+                    } ;
+                    //set current comp to closed
                   setCurrentComp({
                     ...currentComp,
                     closed: "closed",
                   });
-            
-                  updatecompetitionUsersCount(id, { closed: "closed" })
+                  //update competition in db
+                  updatecompetitionUsersCount(id, { closed: "closed" });
+                  //update users badges
                   updateProfile(scores[0].uid, {
                     rank: scores[0].rank + 1,
                     badges: arrayUnion(currentComp.badge)
-                  })
-                 updateProfile(scores[1].uid, { rank: scores[1].rank + 1 })
-                //  updateProfile(scores[2].uid, { rank: scores[2].rank + 1 })
+                  });
+                  //give user rankups
+                  updateProfile(scores[1].uid, { rank: scores[1].rank + 1 });
+                  updateProfile(scores[2].uid, { rank: scores[2].rank + 1 });
                 }
-
               }
-            );
-
-
+            )
           }
         );
       });
 
-
-
-
       return () => {
-        //do something when screen is unfocused
-        //usefull cleanup function
-        unsubscribe();
-        
+        unsubscribe(); 
       };
     }, [])
   );
 
-
-
+    //handle route paramaters
   const handleOnNavigate = (scorecard) => {
     navigation.navigate("Golfcourse", {
       competition: currentComp,
@@ -199,7 +176,6 @@ export default function Leaderboard({ route, navigation }) {
               )}
             </>
           ) : (
-
             scoreCards[0]?.hole1 === 0 ? (
               <>
                 {scoreCards[0] && (
@@ -328,8 +304,6 @@ export default function Leaderboard({ route, navigation }) {
             )}
           </>
         )}
-
-
         {auth.currentUser.uid === scoreCards[2]?.uid ? (
           currentComp.closed === 'closed' ? (
             <>
@@ -437,22 +411,18 @@ export default function Leaderboard({ route, navigation }) {
 
                       </>
                     ) : (
-
                       score?.hole1 === 0 ? (
                         <>
                           <TouchableOpacity style={{ width: width * 0.2, height: height * 0.03, borderRadius: 100, borderColor: "#68BF7B", borderWidth: 2, justifyContent: "center", alignSelf: "center", position: "absolute", right: 10, }} onPress={() => handleOnNavigate(score)}>
                             <Text style={{ fontSize: 12, textAlign: "center" }}>Start</Text>
                           </TouchableOpacity>
-
                         </>
                       ) : (
-
                         score?.finalscore === 0 ? (
                           <>
                             <TouchableOpacity style={{ width: width * 0.2, height: height * 0.03, borderRadius: 100, borderColor: "#68BF7B", borderWidth: 2, justifyContent: "center", alignSelf: "center", position: "absolute", right: 10, }} onPress={() => handleOnNavigate(score)}>
                               <Text style={{ fontSize: 12, textAlign: "center" }}>Continue</Text>
                             </TouchableOpacity>
-
                           </>
                         ) : (
                           <>
@@ -463,7 +433,6 @@ export default function Leaderboard({ route, navigation }) {
                         )
                       )
                     )
-
                   ) : (
                     <>
                       <View style={{ width: width * 0.2, height: height * 0.03, borderRadius: 100, borderColor: "#68BF7B", borderWidth: 2, justifyContent: "center", alignSelf: "center", position: "absolute", right: 10, }}>
@@ -471,46 +440,35 @@ export default function Leaderboard({ route, navigation }) {
                       </View>
                     </>
                   )}
-
-
-
-
                 </View>
                 ):(
                   <>
-                        <View style={{ width: width * 0.82, height: 75, backgroundColor: "#fff", borderRadius: 9, marginBottom: 10, shadowColor: "#5B5B5B", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.4, elevation: 5, justifyContent: "center", marginLeft: width * 0.08, flexDirection: "row", }}>
-                  <View style={{ width: width * 0.18, height: 55, backgroundColor: "#FFD940", borderRadius: 8, justifyContent: "center", alignSelf: "center", position: "absolute", left: -width * 0.08, }}>
-                    <Text style={{ fontSize: 16, textAlign: "center", fontWeight: "bold", }}> {index + 4} </Text>
-                  </View>
-                  <Image resizeMode={"cover"} source={{ uri: score?.profile }} style={{ width: 55, height: 55, borderRadius: 100, backgroundColor: "red", alignSelf: "center", position: "absolute", left: width * 0.12 }} />
-                  <Text style={{ fontSize: 12, alignSelf: "center", width: width * 0.3, position: "absolute", left: width * 0.28, textAlign: "left", }}>{score?.name} </Text>
-
-
-                  {auth.currentUser.uid === score.uid ? (
+                  <View style={{ width: width * 0.82, height: 75, backgroundColor: "#fff", borderRadius: 9, marginBottom: 10, shadowColor: "#5B5B5B", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.4, elevation: 5, justifyContent: "center", marginLeft: width * 0.08, flexDirection: "row", }}>
+                    <View style={{ width: width * 0.18, height: 55, backgroundColor: "#FFD940", borderRadius: 8, justifyContent: "center", alignSelf: "center", position: "absolute", left: -width * 0.08, }}>
+                      <Text style={{ fontSize: 16, textAlign: "center", fontWeight: "bold", }}> {index + 4} </Text>
+                    </View>
+                    <Image resizeMode={"cover"} source={{ uri: score?.profile }} style={{ width: 55, height: 55, borderRadius: 100, backgroundColor: "red", alignSelf: "center", position: "absolute", left: width * 0.12 }} />
+                    <Text style={{ fontSize: 12, alignSelf: "center", width: width * 0.3, position: "absolute", left: width * 0.28, textAlign: "left", }}>{score?.name} </Text>
+                {auth.currentUser.uid === score.uid ? (
                     currentComp.closed === 'closed' ? (
                       <>
                         <TouchableOpacity style={{ width: width * 0.2, height: height * 0.03, borderRadius: 100, borderColor: "#68BF7B", borderWidth: 2, justifyContent: "center", alignSelf: "center", position: "absolute", right: 10, }} onPress={() => handleOnNavigate(score)}>
                           <Text style={{ fontSize: 12, textAlign: "center" }}>{score?.finalscore}</Text>
                         </TouchableOpacity>
-
                       </>
                     ) : (
-
                       score?.hole1 === 0 ? (
                         <>
                           <TouchableOpacity style={{ width: width * 0.2, height: height * 0.03, borderRadius: 100, borderColor: "#68BF7B", borderWidth: 2, justifyContent: "center", alignSelf: "center", position: "absolute", right: 10, }} onPress={() => handleOnNavigate(score)}>
                             <Text style={{ fontSize: 12, textAlign: "center" }}>Start</Text>
                           </TouchableOpacity>
-
                         </>
                       ) : (
-
                         score?.finalscore === 0 ? (
                           <>
                             <TouchableOpacity style={{ width: width * 0.2, height: height * 0.03, borderRadius: 100, borderColor: "#68BF7B", borderWidth: 2, justifyContent: "center", alignSelf: "center", position: "absolute", right: 10, }} onPress={() => handleOnNavigate(score)}>
                               <Text style={{ fontSize: 12, textAlign: "center" }}>Continue</Text>
                             </TouchableOpacity>
-
                           </>
                         ) : (
                           <>
@@ -521,7 +479,6 @@ export default function Leaderboard({ route, navigation }) {
                         )
                       )
                     )
-
                   ) : (
                     <>
                       <View style={{ width: width * 0.2, height: height * 0.03, borderRadius: 100, borderColor: "#68BF7B", borderWidth: 2, justifyContent: "center", alignSelf: "center", position: "absolute", right: 10, }}>
@@ -529,14 +486,8 @@ export default function Leaderboard({ route, navigation }) {
                       </View>
                     </>
                   )}
-
-
-
-
-                </View>          
-                  
-                  
-                  </>
+                </View>           
+                </>
                 )}
               </View>
             ))}
@@ -550,34 +501,34 @@ export default function Leaderboard({ route, navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff",
+    backgroundColor: "#fff"
   },
   back: {
     position: "absolute",
     width: 50,
     height: 50,
     marginLeft: 5,
-    marginTop: height * 0.075,
+    marginTop: height * 0.075
   },
   heading: {
     fontSize: 20,
     fontWeight: "bold",
     marginTop: height * 0.079,
     textAlign: "left",
-    marginLeft: width * 0.25,
+    marginLeft: width * 0.25
   },
   venuetitle: {
     fontSize: 12,
     marginTop: 5,
     textAlign: "left",
-    marginLeft: width * 0.25,
+    marginLeft: width * 0.25
   },
   leaderboardheading: {
     textAlign: "center",
     fontFamily: "Allan",
     color: "#68BF7B",
     fontSize: 30,
-    marginTop: 20,
+    marginTop: 20
   },
 });
 

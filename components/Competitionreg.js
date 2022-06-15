@@ -4,15 +4,10 @@ import { StatusBar,StyleSheet, Text, View, SafeAreaView, Image, TouchableOpacity
 import { Dimensions } from "react-native";
 import { BlurView } from 'expo-blur';
 
-
 //dropdown and datepicker and imagepicker
 import DropDownPicker from 'react-native-dropdown-picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import * as ImagePicker from 'expo-image-picker';
-
-//Import fonts
-import * as Font from 'expo-font';
-
 
 //firebase
 import { signOut } from 'firebase/auth';
@@ -21,60 +16,51 @@ import  {addDoc, collection, doc, setDoc, Timestamp} from 'firebase/firestore';/
 import { getUser } from '../Database';
 import { getDownloadURL, ref, uploadBytes } from 'firebase/storage';
 
-
 //Import images
-
 import arrow from '../assets/images/blackarrow.png';
 import imgplacehldr from '../assets/images/imgplaceholder.png';
 import badgeimg from '../assets/images/badge.png';
 
-
+//set how dropdown picker should look like
 DropDownPicker.setListMode("SCROLLVIEW");
-
-
 
 //Get width and height of device for responsiveness
 var width = Dimensions.get('window').width;
 var height = Dimensions.get('window').height;
 
-    //get fonts
-    Font.loadAsync({
-      'Allan' :require('../assets/fonts/Allan-Bold.ttf'),
-      'Roboto': require('../assets/fonts/Roboto-Regular.ttf')
-    });
-
 //Content
 export default function Competitionreg({navigation}) {
 
-
+  //useState variables for images
   const [badge, onBadgeChange] = useState('/');
   const [image, setImage] = useState('/');
   const [imageplace, setImageplace] = useState(null);
 
+  //add competition function
   const addCompetition = async() =>{
-    await handleImageUpload()
-   
-}
+    await handleImageUpload();
+  }
 
-
+  //get image that user picked
   const handleImageUpload = async() =>{
-    const imagebanner = ref(storage, 'images/'+ title+'banner'+ Timestamp.fromDate(new Date()) + ".jpg" )
-    const imagebadge = ref(storage, 'images/'+ title+'badge'+ Timestamp.fromDate(new Date()) + ".jpg" )
-    
+    //set references for images to be stored in google firebase storage
+    const imagebanner = ref(storage, 'images/'+ title+'banner'+ Timestamp.fromDate(new Date()) + ".jpg" );
+    const imagebadge = ref(storage, 'images/'+ title+'badge'+ Timestamp.fromDate(new Date()) + ".jpg" );
+    //translate image to jpg
     const blob = await new Promise((resolve, reject) => {
-        const xhr = new XMLHttpRequest();
-        xhr.onload = function () {
-          resolve(xhr.response);
-        };
-        xhr.onerror = function (e) {
-          console.log(e);
-          reject(new TypeError("Network request failed"));
-        };
-        xhr.responseType = "blob";
-        xhr.open("GET", image, true);
-        xhr.send(null);
+      const xhr = new XMLHttpRequest();
+      xhr.onload = function () {
+        resolve(xhr.response);
+      };
+      xhr.onerror = function (e) {
+        console.log(e);
+        reject(new TypeError("Network request failed"));
+      };
+      xhr.responseType = "blob";
+      xhr.open("GET", image, true);
+      xhr.send(null);
     });
-
+    //translate second image to jpg
     const blob2 = await new Promise((resolve, reject) => {
       const xhr = new XMLHttpRequest();
       xhr.onload = function () {
@@ -88,69 +74,48 @@ export default function Competitionreg({navigation}) {
       xhr.open("GET", badge, true);
       xhr.send(null);
   });
-
-
-
+    //wait for image to upload and get back a usable url link
     await uploadBytes(imagebanner, blob).then((snapshot) => {
       getDownloadURL(snapshot.ref).then((url) => {
-        console.log(url)
-
+        //wait for image to upload and get back a usable url link (2 image)
         uploadBytes(imagebadge, blob2).then((snapshot) => {
           getDownloadURL(snapshot.ref).then((url2) => {
-              console.log(url2)
-              const newDocRef = doc(collection(db, "competitions"));
-               setDoc(
-                     newDocRef, 
-                     {
-                      title: title,
-                      description:description,
-                      venue:venue,
-                      age:age,
-                      gender:gender,
-                      rank:rank,
-                      date:date,
-                      dateCreated : Timestamp.fromDate(new Date()),
-                      maxplayers:parseInt(maxplayers),
-                      hole:hole,
-                      badge:url2,
-                      image:url,
-                      currentplayers:0,
-                       id: newDocRef.id,
-                       closed:"open",
-                       usersentered:[],
-                     }
-                 )
-
-
-
-
-
-              })
-          
-         .catch((error) => console.log(error))
-     })
-        
+            //create a new competition in database
+            const newDocRef = doc(collection(db, "competitions"));
+             setDoc(
+                   newDocRef, 
+                   {
+                    title: title,
+                    description:description,
+                    venue:venue,
+                    age:age,
+                    gender:gender,
+                    rank:rank,
+                    date:date,
+                    dateCreated : Timestamp.fromDate(new Date()),
+                    maxplayers:parseInt(maxplayers),
+                    hole:hole,
+                    badge:url2,
+                    image:url,
+                    currentplayers:0,
+                    id: newDocRef.id,
+                    closed:"open",
+                    usersentered:[],
+                   }
+               )
+          })
+            .catch((error) => console.log(error))
+          })
+        })
+          .catch((error) => console.log(error))
     })
-   .catch((error) => console.log(error))
-    })
-
-
-
-
-
-
-
-
-.catch((error) => console.log(error))
-    // We're done with the blob, close and release it
-    blob.close();
-    navigation.pop();
+      .catch((error) => console.log(error))
+      // We're done with the blob, close and release it
+      blob.close();
+      navigation.pop();
     }
 
-
-
-  
-
+  //get image from image picker  
   const pickImage = async () => {
     // No permissions request is necessary for launching the image library
     let result = await ImagePicker.launchImageLibraryAsync({
@@ -159,14 +124,12 @@ export default function Competitionreg({navigation}) {
       aspect: [4, 3],
       quality: 1,
     });
-
-    console.log(result);
-
+    //see if user maybe canceled request
     if (!result.cancelled) {
       setImage(result.uri);
     }
   };
-
+  //get image from image picker (2) 
   const pickImage2 = async () => {
     // No permissions request is necessary for launching the image library
     let result = await ImagePicker.launchImageLibraryAsync({
@@ -177,69 +140,50 @@ export default function Competitionreg({navigation}) {
     });
     setImageplace('1')
     console.log(result);
-
+    //see if user maybe canceled request
     if (!result.cancelled) {
       onBadgeChange(result.uri);
     }
   };
 
-
-
-
-
-
-
-
-
-
-
-
-
+    //other use states 
     const [title, onTitleChange] = useState('');
     const [description, onDescriptionChange] = useState('');
-
     const [maxplayers, onmaxplayersChange] = useState('');
 
 
-
-    var today = new Date();
-    var dd = String(today.getDate()).padStart(2, '0');
-    var mm = String(today.getMonth() + 1).padStart(2, '0'); //January is 0!
-    var yyyy = today.getFullYear();
+    //set date 
     var today = new Date().getTime();
 
-
+  //set dates and modes 
     const [date, setDate] = useState(new Date(today));
     const [mode, setMode] = useState('date');
     const [show, setShow] = useState(false);
 
-//https://github.com/react-native-datetimepicker/datetimepicker
-
+    //onchange function for date and time picker
     const onChange = (event, selectedDate) => {
       const currentDate = selectedDate;
       setShow(false);
       setDate(currentDate);
     };
   
+    //change mode of picker
     const showMode = (currentMode) => {
       setShow(true);
       setMode(currentMode);
     };
   
+    //function to open phones date picker
     const showDatepicker = () => {
       showMode('date');
     };
-  
+
+    //function to open phones time picker
     const showTimepicker = () => {
       showMode('time');
     };
 
-
-
-
-
-
-
+    //dropdown variables
     const [open, setOpen] = useState(false);
     const [age, onAgeChange] = useState(null);
     const [items, setItems] = useState([
@@ -249,7 +193,7 @@ export default function Competitionreg({navigation}) {
       {label: 'Any', value: 'Any'}
     ]);
 
-
+    //dropdown variables
     const [open1, setOpen1] = useState(false);
     const [gender, onGenderChange] = useState(null);
     const [items1, setItems1] = useState([
@@ -258,6 +202,7 @@ export default function Competitionreg({navigation}) {
       {label: 'Any', value: 'Any'}
     ]);
 
+    //dropdown variables
     const [open2, setOpen2] = useState(false);
     const [rank, onRankChange] = useState(null);
     const [item2, setItems2] = useState([
@@ -274,7 +219,7 @@ export default function Competitionreg({navigation}) {
       {label: '10', value: '10'}
     ]);
 
-
+    //dropdown variables
     const [open3, setOpen3] = useState(false);
     const [hole, onHoleChange] = useState(null);
     const [items3, setItems3] = useState([
@@ -282,96 +227,77 @@ export default function Competitionreg({navigation}) {
       {label: '9', value: '9'}
     ]);
 
-
+    //dropdown variables
     const [open4, setOpen4] = useState(false);
     const [venue, onVenueChange] = useState(null);
     const [items4, setItems4] = useState([
-      {label: 'Sun City', value: 'Sun City'},
-      {label: 'Pebble Rock', value: 'Pebble Rock'}
+      {label: 'Arabella Golf Estate', value: 'Arabella Golf Estate'},
+      {label: 'Blair Atholl Golf Estate', value: 'Blair Atholl Golf Estate'},
+      {label: 'Bonanza Golf Course', value: 'Bonanza Golf Course'},
+      {label: 'Bryanston Country Club', value: 'Bryanston Country Club'},
+      {label: 'De Zalze Golf Estate', value: 'De Zalze Golf Estate'},
+      {label: 'Dainfern Golf Estate', value: 'Dainfern Golf Estate'},
+      {label: 'Eagle Canyon Golf Estate', value: 'Eagle Canyon Golf Estate'},
+      {label: 'Ebotse Golf Estate', value: 'Ebotse Golf Estate'},
+      {label: 'Goose Valley Golf Estate', value: 'Goose Valley Golf Estate'},
+      {label: 'Kingswood Golf Estate', value: 'Kingswood Golf Estate'},
+      {label: 'Knysna Golf Club', value: 'Knysna Golf Club'},
+      {label: 'Leopard Creek Golf Estate', value: 'Leopard Creek Golf Estate'},
     ]);
-
-
-
-
-
-
-
-
-
-     
 
   //Content Render
   return (
     <View style={styles.container}>
-        <StatusBar barStyle = "dark-content" hidden = {false} translucent = {true}/>
-      
-      
-        <TouchableOpacity style={styles.back} onPress={() => navigation.pop()}>
+      <StatusBar barStyle = "dark-content" hidden = {false} translucent = {true}/>
+      <TouchableOpacity style={styles.back} onPress={() => navigation.pop()}>
         <Image source={arrow} style={{marginTop:11, alignSelf:'center'}} />
-        </TouchableOpacity>
-        <Text style={styles.heading}>Tournament form</Text>
-
-        <View  style={{width:width, height:height*0.75, paddingTop:30, paddingBottom:30}} >
+      </TouchableOpacity>
+      <Text style={styles.heading}>Tournament form</Text>
+    <View  style={{width:width, height:height*0.75, paddingTop:30, paddingBottom:30}} >
     <ScrollView >
-
-    <Text style={styles.label}>Card Backdrop</Text>
-    <View style={styles.backdrop}> 
-    <Image source={imgplacehldr} style={{position:'absolute',width:80, height:80, marginTop:20}}/>
-    <TouchableOpacity onPress={pickImage}>
-    <Image source={{uri: image}} style={styles.imgback}/>
-    </TouchableOpacity>
-    </View>
-
-
-        <Text style={styles.label}>Title</Text>
-          <TextInput
-          selectionColor={'#064635'}   
-            value={title}
-            onChangeText={onTitleChange}
-            style={styles.input}
-          />
-
-        <Text style={styles.label}>Description</Text>
-          <TextInput 
-          selectionColor={'#064635'} 
-            value={description}
-            onChangeText={onDescriptionChange}
-            style={styles.input}
-          />
-
-
-
-        <Text style={styles.label}>Venue</Text>
-
-        <DropDownPicker style={styles.dropdown} dropDownDirection="TOP"
-            containerStyle={{width:width/1.2, alignSelf:'center'}}
-
-            placeholder=""
-            open={open4}
-            value={venue}
-            items={items4}
-            setOpen={setOpen4}
-            setValue={onVenueChange}
-            setItems={setItems4}
-            />
-
-
-
-
-<Text style={styles.label}>Max Players</Text>
-          <TextInput 
-          selectionColor={'#064635'} 
-          keyboardType='number-pad'  
-            value={maxplayers}
-            onChangeText={onmaxplayersChange}
-            style={styles.input}
-          />   
-
-
-<Text style={styles.label}>Age</Text>
-        <DropDownPicker style={styles.dropdown} dropDownDirection="TOP" 
+      <Text style={styles.label}>Card Backdrop</Text>
+      <View style={styles.backdrop}> 
+        <Image source={imgplacehldr} style={{position:'absolute',width:80, height:80, marginTop:20}}/>
+        <TouchableOpacity onPress={pickImage}>
+          <Image source={{uri: image}} style={styles.imgback}/>
+        </TouchableOpacity>
+      </View>
+      <Text style={styles.label}>Title</Text>
+      <TextInput
+        selectionColor={'#064635'}   
+        value={title}
+        onChangeText={onTitleChange}
+        style={styles.input}
+      />
+      <Text style={styles.label}>Description</Text>
+      <TextInput 
+        selectionColor={'#064635'} 
+        value={description}
+        onChangeText={onDescriptionChange}
+        style={styles.input}
+      />
+      <Text style={styles.label}>Venue</Text>
+      <DropDownPicker style={styles.dropdown} dropDownDirection="TOP"
         containerStyle={{width:width/1.2, alignSelf:'center'}}
-
+        placeholder=""
+        open={open4}
+        value={venue}
+        items={items4}
+        setOpen={setOpen4}
+        setValue={onVenueChange}
+        setItems={setItems4}
+      />
+      <Text style={styles.label}>Max Players</Text>
+      <TextInput 
+        selectionColor={'#064635'} 
+        keyboardType='number-pad'  
+        value={maxplayers}
+        onChangeText={onmaxplayersChange}
+        style={styles.input}
+      />   
+      <Text style={styles.label}>Age</Text>
+      <DropDownPicker style={styles.dropdown} dropDownDirection="TOP" 
+        containerStyle={{width:width/1.2, alignSelf:'center'}}
         placeholder=""
         open={open}
         value={age}
@@ -379,46 +305,32 @@ export default function Competitionreg({navigation}) {
         setOpen={setOpen}
         setValue={onAgeChange}
         setItems={setItems}
-    />
-
-
-<Text style={styles.label}>Gender</Text>
-<DropDownPicker style={styles.dropdown} dropDownDirection="TOP"
-containerStyle={{width:width/1.2, alignSelf:'center'}}
-
-placeholder=""
-open={open1}
-value={gender}
-items={items1}
-setOpen={setOpen1}
-setValue={onGenderChange}
-setItems={setItems1}
-/>
-
-<Text style={styles.label}>Holes</Text>
-<DropDownPicker style={styles.dropdown} dropDownDirection="TOP"
-containerStyle={{width:width/1.2, alignSelf:'center'}}
-
-placeholder=""
-open={open3}
-value={hole}
-items={items3}
-setOpen={setOpen3}
-setValue={onHoleChange}
-setItems={setItems3}
-/>
-
-
-
-
-            <Text style={styles.label}>Rank</Text>
-
-
-
-
-            <DropDownPicker style={styles.dropdown} dropDownDirection="TOP"
+      />
+      <Text style={styles.label}>Gender</Text>
+      <DropDownPicker style={styles.dropdown} dropDownDirection="TOP"
         containerStyle={{width:width/1.2, alignSelf:'center'}}
-
+        placeholder=""
+        open={open1}
+        value={gender}
+        items={items1}
+        setOpen={setOpen1}
+        setValue={onGenderChange}
+        setItems={setItems1}
+      />
+      <Text style={styles.label}>Holes</Text>
+      <DropDownPicker style={styles.dropdown} dropDownDirection="TOP"
+        containerStyle={{width:width/1.2, alignSelf:'center'}}
+        placeholder=""
+        open={open3}
+        value={hole}
+        items={items3}
+        setOpen={setOpen3}
+        setValue={onHoleChange}
+        setItems={setItems3}
+      />
+      <Text style={styles.label}>Rank</Text>
+      <DropDownPicker style={styles.dropdown} dropDownDirection="TOP"
+        containerStyle={{width:width/1.2, alignSelf:'center'}}
         placeholder=""
         open={open2}
         value={rank}
@@ -426,85 +338,51 @@ setItems={setItems3}
         setOpen={setOpen2}
         setValue={onRankChange}
         setItems={setItems2}
-    />
-
-
-        <View style={{flexDirection:'row', justifyContent:'space-evenly', marginTop:20}}>
-
-          <TouchableOpacity style={{justifyContent: 'center'}} onPress={showDatepicker}>
+      />
+      <View style={{flexDirection:'row', justifyContent:'space-evenly', marginTop:20}}>
+        <TouchableOpacity style={{justifyContent: 'center'}} onPress={showDatepicker}>
           <View style={styles.button}>
-          <Text style={styles.btntext}>Date</Text>
-              </View>
-          </TouchableOpacity >
-
-          <TouchableOpacity  style={{justifyContent: 'center'}} onPress={showTimepicker}>
-          <View style={styles.button}>
-          <Text style={styles.btntext}>Time</Text> 
-              </View>
-          </TouchableOpacity>
-
-
+            <Text style={styles.btntext}>Date</Text>
           </View>
-          <Text style={styles.datetext}>{date.toLocaleString()}</Text>
-
-
-          <Text style={styles.label}>Badge</Text>
-    <View style={styles.badge}>
-      <Image source={badgeimg}/>
-
-
-
-
-        {imageplace == null ? (
-        <>
-          <Image source={imgplacehldr} style={{position:'absolute',width:80, height:80, marginTop:10}}/>
-
-        </>
-      ):(
-      <>
-      </>
-        )}
- 
-      
-      <TouchableOpacity onPress={pickImage2}>
-    <Image source={{uri: badge}} style={styles.imgbadge}/>
+        </TouchableOpacity >
+        <TouchableOpacity  style={{justifyContent: 'center'}} onPress={showTimepicker}>
+          <View style={styles.button}>
+            <Text style={styles.btntext}>Time</Text> 
+          </View>
+        </TouchableOpacity>
+      </View>
+      <Text style={styles.datetext}>{date.toLocaleString()}</Text>
+      <Text style={styles.label}>Badge</Text>
+      <View style={styles.badge}>
+        <Image source={badgeimg}/>
+{imageplace == null ? (
+  <>
+    <Image source={imgplacehldr} style={{position:'absolute',width:80, height:80, marginTop:10}}/>
+  </>
+):(
+  <>
+  </>
+)}
+    <TouchableOpacity onPress={pickImage2}>
+      <Image source={{uri: badge}} style={styles.imgbadge}/>
     </TouchableOpacity>
-
-    </View>
-
-
-
-
-
-
-
-
+  </View>
 </ScrollView>
-
 {show && (
-        <DateTimePicker display={Platform.OS === 'ios' ? 'spinner' : 'default' }  minimumDate={new Date(yyyy, mm-1, dd)}
-          value={date}
-          mode={mode}
-          is24Hour={true}
-          onChange={onChange}
-        />
-      )}
-
+  <DateTimePicker display={Platform.OS === 'ios' ? 'spinner' : 'default' }  minimumDate={new Date(yyyy, mm-1, dd)}
+    value={date}
+    mode={mode}
+    is24Hour={true}
+    onChange={onChange}
+  />
+)}
+  </View>
+  <View style={{position:'absolute' , bottom:40, alignSelf:'center'}}>
+    <TouchableOpacity  disabled={!title || !description || !venue || !maxplayers || !age || !gender || !hole || !rank || !date || badge=='/' || image =='/'}  onPress={addCompetition} style={!title || !description || !venue || !maxplayers || !age || !gender || !hole || !rank || !date || badge=='/' || image =='/' ? styles.disabled  : styles.hostbtn}>
+      <Text style={styles.hosttext}>Host Tournament</Text>
+    </TouchableOpacity>
+  </View>
 </View>
-
-<View style={{position:'absolute' , bottom:40, alignSelf:'center'}}>
-            <TouchableOpacity  disabled={!title || !description || !venue || !maxplayers || !age || !gender || !hole || !rank || !date || badge=='/' || image =='/'}  onPress={addCompetition} style={!title || !description || !venue || !maxplayers || !age || !gender || !hole || !rank || !date || badge=='/' || image =='/' ? styles.disabled  : styles.hostbtn}>
-              <Text style={styles.hosttext}>Host Tournament</Text>
-          </TouchableOpacity>
-</View>
-
-
-
-
-
-  
-
-    </View>
   );
 }
 
@@ -512,19 +390,18 @@ setItems={setItems3}
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: '#fff'
   },
-back:{
+  back:{
     position:'absolute',
     width:50,
     height:50,
     marginLeft:5,
     marginTop:60, 
     zIndex:50,
-    elevation:50
-    
+    elevation:50   
 },
-heading:{
+  heading:{
     fontSize:30,
     fontFamily:'Allan',
     marginTop:66,
@@ -561,12 +438,11 @@ heading:{
     fontFamily:'Roboto',
     paddingLeft:10,
     fontSize:16 ,
-    backgroundColor:'rgba(0, 0, 0, 0)',
-
+    backgroundColor:'rgba(0, 0, 0, 0)'
   }, 
    datePickerStyle: {
     width: 200,
-    marginTop: 20,
+    marginTop: 20
   },
   button:{
     flex:1,
