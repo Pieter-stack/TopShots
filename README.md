@@ -82,7 +82,7 @@ For the companies, you can host tournaments and competitions spesific to what yo
 * [GitHub](https://github.com/)
 
 <img src="https://upload.wikimedia.org/wikipedia/commons/9/9a/Visual_Studio_Code_1.35_icon.svg" width="5%" height="5%">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-<img src="https://upload.wikimedia.org/wikipedia/commons/a/a7/React-icon.svg" width="5%" height="5%">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+<img src="Images/expo.png" width="5%" height="5%">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 <img src="https://upload.wikimedia.org/wikipedia/commons/a/a7/React-icon.svg" width="5%" height="5%">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 <img src="https://upload.wikimedia.org/wikipedia/commons/9/91/Octicons-mark-github.svg" width="5%" height="5%">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 
@@ -285,25 +285,22 @@ Distributed under the MIT License. See `LICENSE` for more information.\
 <!-- ACKNOWLEDGEMENTS -->
 ## Acknowledgements
 
-* [Splash screen](https://www.youtube.com/watch?v=Q0gRqbtFLcw)
 * [Expo](https://expo.dev/)
-* [Child development](https://www.highspeedtraining.co.uk/hub/child-development-in-early-years/)
-* [Full Screen](https://developer.android.com/training/system-ui/immersive)
 * [Mockups](https://www.freepik.com)
 * [Lecturer](https://github.com/ArmandPret)
 
 
 <!-- MARKDOWN LINKS & IMAGES -->
-[image1]: Images/image1.png
-[image2]: Images/image2.png
-[image3]: Images/image3.png
-[image4]: Images/image4.png
-[image5]: Images/image5.png
-[image6]: Images/image6.png
-[image7]: Images/image7.png
-[image8]: Images/image8.png
-[image9]: Images/image9.png
-[image10]: Images/image10.png
-[image11]: Images/image11.png
+[image1]: Images/Image1.png
+[image2]: Images/Image2.png
+[image3]: Images/Image3.png
+[image4]: Images/Image4.png
+[image5]: Images/Image5.png
+[image6]: Images/Image6.png
+[image7]: Images/Image7.png
+[image8]: Images/Image8.png
+[image9]: Images/Image9.png
+[image10]: Images/Image10.png
+[image11]: Images/Image11.png
 
  
