@@ -294,16 +294,16 @@ Distributed under the MIT License. See `LICENSE` for more information.\
 
 
 <!-- MARKDOWN LINKS & IMAGES -->
-[image1]: Images/Image1.png
-[image2]: Images/Image2.png
-[image3]: Images/Image3.png
-[image4]: Images/Image4.png
-[image5]: Images/Image5.png
-[image6]: Images/Image6.png
-[image7]: Images/Image7.png
-[image8]: Images/Image8.png
-[image9]: Images/Image9.png
-[image10]: Images/Image10.png
-[image11]: Images/Mockup6.png
+[image1]: Images/image1.png
+[image2]: Images/image2.png
+[image3]: Images/image3.png
+[image4]: Images/image4.png
+[image5]: Images/image5.png
+[image6]: Images/image6.png
+[image7]: Images/image7.png
+[image8]: Images/image8.png
+[image9]: Images/image9.png
+[image10]: Images/image10.png
+[image11]: Images/image11.png
 
  
