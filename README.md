@@ -248,7 +248,7 @@ The `Reviews and Testing` consists of `in class`, reviews.
 
 To see the promotional video, click below:
 
-[View Promotional Video]()
+[View Promotional Video](https://www.youtube.com/watch?v=vvu9OxefnRk)
 
 <!-- ROADMAP -->
 ## Roadmap
