@@ -336,7 +336,7 @@ const id =competition?.id;
 ):(score?.hole4 == 0 && hole4 == 0 ?(
   <>
     <Text style={{fontWeight:'800', fontSize:36, marginLeft:20, marginTop:10}}>{course[0]?.Hole4Par}</Text>
-    <Text style={{fontWeight:'800', fontSize:36, marginLeft:20}}>{course[0].Hole4Stroke}</Text>
+    <Text style={{fontWeight:'800', fontSize:36, marginLeft:20}}>{course[0]?.Hole4Stroke}</Text>
   </>
 ):(score?.hole5 == 0 && hole5 == 0 ?(
   <>

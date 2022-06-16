@@ -67,7 +67,6 @@ export default function App() {
     async function fetchData() {
       
     const appData = await AsyncStorage.getItem('isAppFirstLaunched');
-    console.log(appData);
     //if app is opened for first time set state to true
     if( appData == null){
      

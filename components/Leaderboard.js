@@ -25,7 +25,7 @@ export default function Leaderboard({ route, navigation }) {
 
   useEffect(() => {
     setCurrentComp(route.params)
-  }, [route.params])
+  }, [route.params]);
 
 
   useFocusEffect(
@@ -97,8 +97,8 @@ export default function Leaderboard({ route, navigation }) {
                     badges: arrayUnion(currentComp.badge)
                   });
                   //give user rankups
-                  updateProfile(scores[1].uid, { rank: scores[1].rank + 1 });
-                  updateProfile(scores[2].uid, { rank: scores[2].rank + 1 });
+                  updateProfile(scores[1]?.uid, { rank: scores[1].rank + 1 });
+                  updateProfile(scores[2]?.uid, { rank: scores[2].rank + 1 });
                 }
               }
             )
@@ -169,7 +169,7 @@ export default function Leaderboard({ route, navigation }) {
                   <Text style={{ fontSize: 12, textAlign: "center", alignSelf: "center" }}> {scoreCards[0]?.name} </Text>
                   <View style={{ width: width * 0.15, height: height * 0.03, borderRadius: 100, borderColor: "#68BF7B", borderWidth: 2, marginTop: 10, justifyContent: "center", }}>
                     <TouchableOpacity onPress={() => handleOnNavigate(scoreCards[0])}>
-                      <Text style={{ fontSize: 12, textAlign: "center" }}>{scoreCards[0]?.finalscore} </Text>
+                      <Text style={{ fontSize: 12, textAlign: "center" }}>{scoreCards[0]?.finalscore}</Text>
                     </TouchableOpacity>
                   </View>
                 </View>
@@ -197,7 +197,8 @@ export default function Leaderboard({ route, navigation }) {
                     <View style={{ alignSelf: "center", alignItems: "center", width: 140, position: "absolute", marginTop: width * 0.36, }}>
                       <Text style={{ fontSize: 12, textAlign: "center", alignSelf: "center" }}> {scoreCards[0]?.name} </Text>
                       <View style={{ width: width * 0.15, height: height * 0.03, borderRadius: 100, borderColor: "#68BF7B", borderWidth: 2, marginTop: 10, justifyContent: "center", }}>
-                        <TouchableOpacity onPress={() => handleOnNavigate(scoreCards[0])}>                          <Text style={{ fontSize: 12, textAlign: "center" }}>Continue</Text>
+                        <TouchableOpacity onPress={() => handleOnNavigate(scoreCards[0])}>                          
+                        <Text style={{ fontSize: 12, textAlign: "center" }}>Continue</Text>
                         </TouchableOpacity>
                       </View>
                     </View>

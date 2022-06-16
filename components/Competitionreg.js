@@ -153,6 +153,10 @@ export default function Competitionreg({navigation}) {
 
 
     //set date 
+    var today = new Date();
+    var dd = String(today.getDate()).padStart(2, '0');
+    var mm = String(today.getMonth() + 1).padStart(2, '0'); //January is 0!
+    var yyyy = today.getFullYear();
     var today = new Date().getTime();
 
   //set dates and modes 
@@ -243,6 +247,9 @@ export default function Competitionreg({navigation}) {
       {label: 'Kingswood Golf Estate', value: 'Kingswood Golf Estate'},
       {label: 'Knysna Golf Club', value: 'Knysna Golf Club'},
       {label: 'Leopard Creek Golf Estate', value: 'Leopard Creek Golf Estate'},
+      {label: 'Mossel Bay Golf Club', value: 'Mossel Bay Golf Club'},
+      {label: 'Olivewood Golf Estate', value: 'Olivewood Golf Estate'},
+      {label: 'Paarl Golf Club', value: 'Paarl Golf Club'}
     ]);
 
   //Content Render

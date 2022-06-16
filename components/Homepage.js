@@ -68,7 +68,7 @@ export default function Homepage({navigation}) {
           }else if (value == 'false'){
             setIsPress(false);
             setIsPress2(true); 
-           setActive(2) ;
+           setActive('2') ;
           }  
         } catch (error) {
           // Error retrieving data
@@ -78,9 +78,8 @@ export default function Homepage({navigation}) {
 
       useEffect(() =>{
         //get active state
-        getstate()
+        getstate();
     },[])
-
 
     //set styling of btn1
     const touchProps = {
@@ -88,6 +87,7 @@ export default function Homepage({navigation}) {
         style: isPress ? {opacity:1} : {opacity:0.5},
         onHideUnderlay: () => setIsPress(true),
         onShowUnderlay: () => setIsPress2(false),
+        
     };
     //set styling of btn2
     const touchProps2 = {
@@ -96,8 +96,6 @@ export default function Homepage({navigation}) {
         onHideUnderlay: () => setIsPress2(true),
         onShowUnderlay: () => setIsPress(false),  
     };
-
-
     useFocusEffect(
         React.useCallback(() => {
             //calls from db
@@ -209,23 +207,21 @@ export default function Homepage({navigation}) {
         if(comps[i].gender == users.gender || comps[i].gender == 'Any'){
             if(comps[i].rank < users.rank || comps[i].rank == 'Any'){
                 if(comps[i].age == '20-40'){
-                    console.log('0')
-                    if(users.age > 20 && users.age < 40){
+                    if(users.age >= 20 && users.age <= 40){
                         if(comps[i].closed == 'open'){
-                            UsersCompetitions.push(comps[i]) ;
+                            UsersCompetitions.push(comps[i]);
                         };
                     };
                 }else if(comps[i].age == '40-65'){
-                    if(users.age > 40 && users.age < 65){
+                    if(users.age >= 40 && users.age <= 65){
                         if(comps[i].closed == 'open'){
-                            UsersCompetitions.push(comps[i]) ;
+                            UsersCompetitions.push(comps[i]);
                         }; 
                     };
                 }else if(comps[i].age == '65+'){
-                    console.log('2')
                     if(users.age > 65){
                         if(comps[i].closed == 'open'){
-                            UsersCompetitions.push(comps[i]) ;
+                            UsersCompetitions.push(comps[i]);
                         };
                     };
                 }else if(comps[i].age == 'Any'){
@@ -255,11 +251,11 @@ export default function Homepage({navigation}) {
     <View style={{flexDirection:'row', justifyContent:'space-between'}}>
         <Text style={styles.heading}>Tournaments</Text>
         <View style={{flexDirection:'row', justifyContent:'space-between'}}>
-        <TouchableHighlight {...touchProps} onPress={() => { savestate();}}>
+        <TouchableHighlight {...touchProps} onPress={() => { savestate(); setActive('1');}}>
             <Image source={rectangle} style={styles.icon1}></Image>
         </TouchableHighlight>
         <Image source={line} style={styles.icon2}></Image>
-        <TouchableHighlight {...touchProps2} onPress={() =>{ savestate2();}}>
+        <TouchableHighlight {...touchProps2} onPress={() =>{ savestate2(); setActive('2');}}>
             <Image source={square} style={styles.icon1}></Image>
         </TouchableHighlight>
     </View>

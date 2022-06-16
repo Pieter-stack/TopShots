@@ -168,7 +168,6 @@ export const checkIfalreadyentered = async (id) => {
 
   try {
     join.forEach((joined) => {
-      console.log(joined.uid)
       if (joined.uid == auth.currentUser.uid) {
         joins = "true"
       } else {
