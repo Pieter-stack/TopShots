@@ -92,13 +92,13 @@ export default function Leaderboard({ route, navigation }) {
                   //update competition in db
                   updatecompetitionUsersCount(id, { closed: "closed" });
                   //update users badges
-                  updateProfile(scores[0].uid, {
-                    rank: scores[0].rank + 1,
+                  updateProfile(scores[0]?.uid, {
+                    rank: scores[0]?.rank + 1,
                     badges: arrayUnion(currentComp.badge)
                   });
                   //give user rankups
-                  updateProfile(scores[1]?.uid, { rank: scores[1].rank + 1 });
-                  updateProfile(scores[2]?.uid, { rank: scores[2].rank + 1 });
+                  updateProfile(scores[1]?.uid, { rank: scores[1]?.rank + 1 });
+                  updateProfile(scores[2]?.uid, { rank: scores[2]?.rank + 1 });
                 }
               }
             )
@@ -111,6 +111,8 @@ export default function Leaderboard({ route, navigation }) {
       };
     }, [])
   );
+
+  
 
     //handle route paramaters
   const handleOnNavigate = (scorecard) => {

@@ -1,6 +1,6 @@
 //Import Components
 import React, {useEffect, useState} from 'react';
-import { StatusBar,StyleSheet, Text, View, SafeAreaView, Image, TouchableOpacity, TextInput,FlatList,Footer,Alert, KeyboardAvoidingView } from 'react-native';
+import { StatusBar,StyleSheet, Text, View, SafeAreaView, Image, TouchableOpacity, TextInput,FlatList,Footer,Alert, KeyboardAvoidingView, Platform } from 'react-native';
 import { Dimensions } from "react-native";
 import { BlurView } from 'expo-blur';
 import { createUserOnRegister } from '../Database';

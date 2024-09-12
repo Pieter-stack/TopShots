@@ -1,6 +1,6 @@
 //Import Components
 import React, { useState, useEffect } from 'react';
-import { StatusBar, StyleSheet, Text, View, SafeAreaView, Image, TouchableOpacity, ScrollView, TextInput, Button, Modal, Pressable, Alert } from 'react-native';
+import { StatusBar, StyleSheet, Text, View, SafeAreaView, Image, TouchableOpacity, ScrollView, TextInput, Button, Modal, Pressable, Alert, Platform } from 'react-native';
 import { Dimensions } from "react-native";
 import { BlurView } from 'expo-blur';
 import { useFocusEffect } from "@react-navigation/native";
@@ -57,6 +57,8 @@ export default function Golfcourse({ route, navigation }) {
         };     
     },[])   
 );
+
+
 
 //visibility of popup model 
   const [modalVisible, setModalVisible] = useState(false);
@@ -295,7 +297,6 @@ const id =competition?.id;
     const colRef= doc(db, 'competitions',id,'scorecard',scorecardid);
     return updateDoc(colRef, {finalscore:parseInt(finalscore)}, { merge: true });
   }
-
   //Content Render
   return (
     <GestureHandlerRootView style={{flex:1}}>

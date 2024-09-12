@@ -1,13 +1,11 @@
-//Import Components
-import React, {useState, useEffect} from 'react';
-import { StatusBar,StyleSheet, Text, View, SafeAreaView, Image, TouchableOpacity,ScrollView,TouchableHighlight,AsyncStorage } from 'react-native';
-//import AsyncStorage from '@react-native-async-storage/async-storage';
+import React, { useState, useEffect } from 'react';
+import { StatusBar, StyleSheet, Text, View, SafeAreaView, Image, TouchableOpacity, ScrollView, TouchableHighlight, AsyncStorage, Platform } from 'react-native';
 import { Dimensions } from "react-native";
 import { BlurView } from 'expo-blur';
-import { useFocusEffect } from '@react-navigation/native'
-import { collection, doc, onSnapshot, query, where } from 'firebase/firestore'
+import { useFocusEffect } from '@react-navigation/native';
+import { collection, doc, onSnapshot, query, where } from 'firebase/firestore';
 
-//Import images
+// Import images
 import logo from '../assets/images/logo.png';
 import square from '../assets/images/square.png';
 import line from '../assets/images/line.png';
@@ -18,7 +16,7 @@ import flag from '../assets/images/flag.png';
 import { getAllCompsRealtime, getUser } from '../Database';
 import { auth, db } from '../firebase';
 
-//Get width and height of device for responsiveness
+// Get width and height of device for responsiveness
 var width = Dimensions.get('window').width;
 var height = Dimensions.get('window').height;
 

@@ -1,6 +1,6 @@
 //Import Components
 import react, {useState, useEffect} from 'react';
-import { StatusBar,StyleSheet, Text, View, SafeAreaView, Image, TouchableOpacity,ScrollView,TextInput,Button } from 'react-native';
+import { StatusBar,StyleSheet, Text, View, SafeAreaView, Image, TouchableOpacity,ScrollView,TextInput,Button, Platform } from 'react-native';
 import { Dimensions } from "react-native";
 import { BlurView } from 'expo-blur';
 
