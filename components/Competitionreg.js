@@ -32,119 +32,145 @@ var height = Dimensions.get('window').height;
 export default function Competitionreg({navigation}) {
 
   //useState variables for images
-  const [badge, onBadgeChange] = useState('/');
-  const [image, setImage] = useState('/');
+  const [badge, setBadge] = useState(null);
+  const [image, setImage] = useState(null);
   const [imageplace, setImageplace] = useState(null);
 
   //add competition function
   const addCompetition = async() =>{
-    await handleImageUpload();
+
+     await handleImageUpload();
   }
 
-  //get image that user picked
-  const handleImageUpload = async() =>{
-    //set references for images to be stored in google firebase storage
-    const imagebanner = ref(storage, 'images/'+ title+'banner'+ Timestamp.fromDate(new Date()) + ".jpg" );
-    const imagebadge = ref(storage, 'images/'+ title+'badge'+ Timestamp.fromDate(new Date()) + ".jpg" );
-    //translate image to jpg
-    const blob = await new Promise((resolve, reject) => {
-      const xhr = new XMLHttpRequest();
-      xhr.onload = function () {
-        resolve(xhr.response);
-      };
-      xhr.onerror = function (e) {
-        console.log(e);
-        reject(new TypeError("Network request failed"));
-      };
-      xhr.responseType = "blob";
-      xhr.open("GET", image, true);
-      xhr.send(null);
-    });
-    //translate second image to jpg
-    const blob2 = await new Promise((resolve, reject) => {
-      const xhr = new XMLHttpRequest();
-      xhr.onload = function () {
-        resolve(xhr.response);
-      };
-      xhr.onerror = function (e) {
-        console.log(e);
-        reject(new TypeError("Network request failed"));
-      };
-      xhr.responseType = "blob";
-      xhr.open("GET", badge, true);
-      xhr.send(null);
-  });
-    //wait for image to upload and get back a usable url link
-    await uploadBytes(imagebanner, blob).then((snapshot) => {
-      getDownloadURL(snapshot.ref).then((url) => {
-        //wait for image to upload and get back a usable url link (2 image)
-        uploadBytes(imagebadge, blob2).then((snapshot) => {
-          getDownloadURL(snapshot.ref).then((url2) => {
-            //create a new competition in database
-            const newDocRef = doc(collection(db, "competitions"));
-             setDoc(
-                   newDocRef, 
-                   {
-                    title: title,
-                    description:description,
-                    venue:venue,
-                    age:age,
-                    gender:gender,
-                    rank:rank,
-                    date:date,
-                    dateCreated : Timestamp.fromDate(new Date()),
-                    maxplayers:parseInt(maxplayers),
-                    hole:hole,
-                    badge:url2,
-                    image:url,
-                    currentplayers:0,
-                    id: newDocRef.id,
-                    closed:"open",
-                    usersentered:[],
-                   }
-               )
-          })
-            .catch((error) => console.log(error))
-          })
-        })
-          .catch((error) => console.log(error))
-    })
-      .catch((error) => console.log(error))
-      // We're done with the blob, close and release it
-      blob.close();
-      navigation.pop();
+  const fetchBlob = async (uri) => {
+    console.log(`Fetching blob for URI: ${uri}`);
+    try {
+      const response = await fetch(uri);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch from URI: ${uri}`);
+      }
+      const blob = await response.blob();
+      console.log('Blob fetched successfully');
+      return blob;
+    } catch (error) {
+      console.error('Error fetching blob:', error.message);
+      throw error;
     }
-
-  //get image from image picker  
+  };
+  
+  const handleImageUpload = async () => {
+    if (!image || !badge) {
+      console.log('Image or badge is not selected.');
+      return;
+    }
+  
+    console.log('Starting image upload process...');
+  
+    try {
+      const imagebanner = ref(storage, `images/${title}banner.jpg`);
+      const imagebadge = ref(storage, `images/${title}badge.jpg`);
+  
+      const blob = await fetchBlob(image);
+      const blob2 = await fetchBlob(badge);
+  
+      console.log('Blobs converted successfully');
+  
+      try {
+        const snapshotBanner = await uploadBytes(imagebanner, blob);
+        const urlBanner = await getDownloadURL(snapshotBanner.ref);
+        console.log('Banner image URL:', urlBanner);
+  
+        try {
+          const snapshotBadge = await uploadBytes(imagebadge, blob2);
+          const urlBadge = await getDownloadURL(snapshotBadge.ref);
+          console.log('Badge image URL:', urlBadge);
+  
+          console.log('Preparing to write to Firestore...');
+          const newDocRef = doc(collection(db, "competitions"));
+          await setDoc(newDocRef, {
+            title: title,
+            description: description,
+            venue: venue,
+            age: age,
+            gender: gender,
+            rank: rank,
+            date: date,
+            dateCreated: Timestamp.fromDate(new Date()),
+            maxplayers: parseInt(maxplayers),
+            hole: hole,
+            badge: urlBadge,
+            image: urlBanner,
+            currentplayers: 0,
+            id: newDocRef.id,
+            closed: "open",
+            usersentered: [],
+          });
+  
+          console.log('Firestore write complete');
+  
+          try {
+            console.log('Navigating back...');
+            navigation.pop();
+            console.log('Navigation complete');
+          } catch (error) {
+            console.error('Error during navigation:', error.message);
+          }
+        } catch (error) {
+          console.error('Error uploading badge image:', error.message);
+        }
+      } catch (error) {
+        console.error('Error uploading banner image:', error.message);
+      }
+    } catch (error) {
+      console.error('Error in image upload process:', error.message);
+    }
+  };
+  
+  
+  
+ 
   const pickImage = async () => {
-    // No permissions request is necessary for launching the image library
-    let result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.All,
-      allowsEditing: true,
-      aspect: [4, 3],
-      quality: 1,
-    });
-    //see if user maybe canceled request
-    if (!result.cancelled) {
-      setImage(result.uri);
+    try {
+      let result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.All,
+        allowsEditing: true,
+        aspect: [4, 3],
+        quality: 1,
+      });
+      
+      console.log('ImagePicker result:', result);
+  
+      if (!result.canceled && result.assets.length > 0) {
+        setImage(result.assets[0].uri);
+      } else {
+        console.log('Image selection cancelled');
+      }
+    } catch (error) {
+      console.error('Error picking image:', error);
     }
   };
-  //get image from image picker (2) 
+  
   const pickImage2 = async () => {
-    // No permissions request is necessary for launching the image library
-    let result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.All,
-      allowsEditing: true,
-      aspect: [4, 3],
-      quality: 1,
-    });
-    setImageplace('1')
-    console.log(result);
-    //see if user maybe canceled request
-    if (!result.cancelled) {
-      onBadgeChange(result.uri);
+    try {
+      let result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.All,
+        allowsEditing: true,
+        aspect: [4, 3],
+        quality: 1,
+      });
+  
+      console.log('ImagePicker result:', result);
+  
+      if (!result.canceled && result.assets.length > 0) {
+        setBadge(result.assets[0].uri);
+      } else {
+        console.log('Badge selection cancelled');
+      }
+    } catch (error) {
+      console.error('Error picking badge image:', error);
     }
   };
+  
 
     //other use states 
     const [title, onTitleChange] = useState('');
@@ -257,6 +283,7 @@ export default function Competitionreg({navigation}) {
     <View style={styles.container}>
       <StatusBar barStyle = "dark-content" hidden = {false} translucent = {true}/>
       <TouchableOpacity style={styles.back} onPress={() => navigation.pop()}>
+
         <Image source={arrow} style={{marginTop:11, alignSelf:'center'}} />
       </TouchableOpacity>
       <Text style={styles.heading}>Tournament form</Text>
@@ -385,7 +412,7 @@ export default function Competitionreg({navigation}) {
 )}
   </View>
   <View style={{position:'absolute' , bottom:40, alignSelf:'center'}}>
-    <TouchableOpacity  disabled={!title || !description || !venue || !maxplayers || !age || !gender || !hole || !rank || !date || badge=='/' || image =='/'}  onPress={addCompetition} style={!title || !description || !venue || !maxplayers || !age || !gender || !hole || !rank || !date || badge=='/' || image =='/' ? styles.disabled  : styles.hostbtn}>
+    <TouchableOpacity  onPress={addCompetition} style={!title || !description || !venue || !maxplayers || !age || !gender || !hole || !rank || !date || badge=='/' || image =='/' ? styles.disabled  : styles.hostbtn}>
       <Text style={styles.hosttext}>Host Tournament</Text>
     </TouchableOpacity>
   </View>
